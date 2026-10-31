@@ -136,6 +136,8 @@ window.App = (function () {
     ['home', '概览', 'home'],
     ['calls', '通话', 'calls'],
     ['todos', '待办', 'todos'],
+    ['followups', '跟进', 'followups'],
+    ['journal', '日程', 'journal'],
     ['highlights', '重点', 'highlights'],
     ['flags', '预警', 'flags'],
     ['customers', '客户', 'customers'],
@@ -200,6 +202,7 @@ window.App = (function () {
       if (!q.ok) return;
       counts.todos = q.openTodos || 0;
       counts.flags = q.flagsOpen || 0;
+      if (q.staleCustomers >= 0) counts.followups = q.staleCustomers || 0;
       const btn = $('#qbtn');
       const busy = q.running || q.pendingT > 0;
       const n = q.pendingT;

@@ -5,9 +5,7 @@ const { spawn } = require('child_process');
 const { ROOT, db, get, run, all, now, addLog } = require('./db.js');
 const sens = require('./sensitive.js');
 
-// macOS 适配：可用环境变量 VL_PY 覆盖；默认指向本机专属 venv
-const PY = process.env.VL_PY
-  || '/Users/bill/.workbuddy/binaries/python/envs/visitlog-asr/bin/python3';
+const PY = 'C:/Users/yafo/.workbuddy/binaries/python/envs/training-asr/Scripts/python.exe';
 const SCRIPT = path.join(ROOT, 'scripts', 'transcribe.py');
 const TMP = path.join(ROOT, 'data', 'asr');
 fs.mkdirSync(TMP, { recursive: true });
@@ -15,26 +13,14 @@ fs.mkdirSync(TMP, { recursive: true });
 const queue = [];
 let running = false;
 
-function localModel(name) {
-  const p = path.join(ROOT, 'models', name);
-  return fs.existsSync(p) ? p : '';
-}
-
-// 模型查找顺序：项目内 models/ → 环境变量 VL_MODEL → 全局 whisper-models → 自动降级 small/base
 function modelPath() {
   const s = get("SELECT v FROM settings WHERE k='model'");
-  const want = s ? s.v : 'small';
-  if (want) {
-    const l = localModel(want);
-    if (l) return l;
+  const name = s ? s.v : 'base';
+  if (name === 'small') {
+    const p = path.join(ROOT, 'models', 'small');
+    if (fs.existsSync(p)) return p;
   }
-  const envDir = process.env.VL_MODEL_DIR;
-  if (envDir && fs.existsSync(envDir)) return envDir;
-  const globalBase = '/Users/bill/.workbuddy/binaries/whisper-models/base';
-  if (fs.existsSync(globalBase)) return globalBase;
-  const gSmall = '/Users/bill/.workbuddy/binaries/whisper-models/small';
-  if (fs.existsSync(gSmall)) return gSmall;
-  return localModel('small') || localModel('base') || '';
+  return 'C:/Users/yafo/.workbuddy/binaries/whisper-models/base';
 }
 
 // 单条术语应用（返回新文本与命中数），供新词入库后重套历史稿件

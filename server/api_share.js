@@ -21,7 +21,7 @@ function pub(c) {
   const highlights = all(`SELECT x.id,x.content,x.kind,x.importance,${FU.replace(/@@/g, 'highlight')}
                           FROM highlights x WHERE x.customer_id=? ORDER BY x.importance DESC, x.created_at DESC LIMIT 30`, c.id);
   const fu = all(`SELECT f.id,f.ref_type,f.ref_id,f.content,f.result,f.due_date,f.author,f.created_at
-                  FROM followups f WHERE f.ref_type='customer' AND f.ref_id=? ORDER BY f.id DESC LIMIT 100`, c.id);
+                  FROM followups f WHERE f.ref_type IN ('customer','stale_dismiss') AND f.ref_id=? ORDER BY f.id DESC LIMIT 100`, c.id);
   return {
     ok: true,
     customer: {
@@ -42,7 +42,7 @@ function pub(c) {
 module.exports = {
   // 局域网访问口令登录（设置口令后，非本机访问 /api 需先登录）
   'POST /api/auth': async (req, res, b) => {
-    const ip = auth.clientIp(req);
+    const ip = req.socket.remoteAddress || '';
     const r = auth.login(b.code, ip);
     if (!r.ok) return { ok: false, err: r.err };
     addLog('auth_login', ip, '登录成功');

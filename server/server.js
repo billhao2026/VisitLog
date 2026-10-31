@@ -27,7 +27,9 @@ const routes = Object.assign({},
   require('./api_todos.js'),
   require('./api_dict.js'),
   require('./api_extra.js'),
-  require('./api_share.js')
+  require('./api_share.js'),
+  require('./api_followups_board.js'),
+  require('./api_journal.js')
 );
 
 const MIME = {
@@ -46,26 +48,11 @@ function send(res, code, data, type) {
   res.end(typeof data === 'string' || Buffer.isBuffer(data) ? data : JSON.stringify(data));
 }
 
-// 挂在子路径下时（Caddy 反代带 X-Forwarded-Prefix），给 HTML 注入 <base>，
-// 否则页面里的 /style.css、/app.js 等绝对路径会打到站点根，导致 404。
-function htmlWithBase(file, req) {
-  let html = fs.readFileSync(file, 'utf8');
-  const pfx = String(req.headers['x-forwarded-prefix'] || '').replace(/\/+$/, '');
-  if (pfx && !/<base\s/i.test(html)) {
-    html = html.replace(/<head([^>]*)>/i, `<head$1><base href="${pfx}/">`);
-  }
-  return html;
-}
-
-function serveHtml(res, file, req) {
-  return send(res, 200, htmlWithBase(file, req), 'text/html; charset=utf-8');
-}
-
 function serveStatic(req, res, urlPath) {
   // 分享页：/s/<token> → public/share.html（token 由前端 API 校验）
   if (urlPath.startsWith('/s/')) {
     const f = path.join(PUB, 'share.html');
-    return serveHtml(res, f, req);
+    return send(res, 200, fs.readFileSync(f), 'text/html; charset=utf-8');
   }
   let rel = urlPath === '/' ? '/index.html' : urlPath.split('?')[0];
   let file;
@@ -104,7 +91,6 @@ function serveStatic(req, res, urlPath) {
     res.writeHead(200, { 'Content-Type': ctype, 'Accept-Ranges': 'bytes', 'Content-Length': st.size });
     return fs.createReadStream(file).pipe(res);
   }
-  if (ext === '.html') return serveHtml(res, file, req);
   send(res, 200, fs.readFileSync(file), type);
 }
 

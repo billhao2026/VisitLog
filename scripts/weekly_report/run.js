@@ -8,12 +8,9 @@ const crypto = require('crypto');
 const NODE = process.execPath;
 const HERE = __dirname;
 const ROOT = path.join(HERE, '..', '..');
-// macOS 适配：凭证目录按 HOME/USERPROFILE 自动定位（Windows 与 macOS 通用）
-const WB_HOME = process.env.WORKBUDDY_HOME
-  || path.join(process.env.HOME || process.env.USERPROFILE || '', '.workbuddy');
-const CRED_DIR = path.join(WB_HOME, 'connectors', 'f0872237-1a21-4c48-b716-12f28e123927');
-const SMTP = path.join(WB_HOME, 'connectors', 'skills', 'connector-netease-mail', 'scripts', 'smtp.bundle.js');
-const DOCS = path.join(process.env.HOME || '', 'Documents');   // 连接器附件白名单目录
+const CRED_DIR = 'C:/Users/yafo/.workbuddy/connectors/f0872237-1a21-4c48-b716-12f28e123927';
+const SMTP = path.join(HERE, 'smtp_send.js');   // 2026-09-24：连接器 smtp.bundle.js 随 skills 目录被清理丢失，改为本地零依赖 SMTPS 发送器
+const DOCS = 'C:/Users/yafo/Documents';   // 连接器附件白名单目录
 const TO = '82665258@163.com';
 
 function decryptEnv() {

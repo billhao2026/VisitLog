@@ -2,6 +2,7 @@
 window.Call = (function () {
   const { $, $$, get, post, del, esc, toast, fmtDate, fmtDur, drawer, closeDrawer, bindEdit, rel } = App;
   let id = null, data = null, cats = [];
+  let fromCust = null;   // 从客户档案进入时记录客户 id，用于「返回客户档案」
 
   async function render() {
     const r = await get('/api/calls/' + id);
@@ -15,6 +16,9 @@ window.Call = (function () {
       : c.analyze_status === 'error' ? ['分析失败', 'r'] : ['待分析', 'y'];
 
     drawer(`
+    ${fromCust ? `<div class="rowflex" style="justify-content:flex-end;margin-bottom:8px">
+      <button class="btn sm" id="back-cust" title="返回到该客户的档案（含摘要与重点事项）">← 返回客户档案</button>
+    </div>` : ''}
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:6px">
       <div class="grow">
         <div class="eyebrow">${esc(c.visit_type || '通话')} · ${fmtDate(c.visited_at, true)} · ${fmtDur(c.duration_sec)}</div>
@@ -102,6 +106,11 @@ window.Call = (function () {
       await post('/api/flags/' + fid, { value: 1 });
       toast('已标记处理'); after();
     });
+    if (fromCust && $('#back-cust')) $('#back-cust').onclick = () => {
+      const cid = fromCust;
+      fromCust = null;
+      if (window.Cust) Cust.open(cid);
+    };
     bindEdit($('#drawer-body'), U, 'title', null, after);
     bindEdit($('#drawer-body'), U, 'summary', null, after);
     bindEdit($('#drawer-body'), U, 'quality_score', (v) => (v === '' ? null : Number(v) || null), after);
@@ -173,5 +182,5 @@ window.Call = (function () {
     });
   }
 
-  return { open: (i) => { id = i; render(); }, render };
+  return { open: (i, from) => { id = i; fromCust = from || null; render(); }, render };
 })();

@@ -13,8 +13,7 @@ try:
 except Exception:
     pass
 
-_here = Path(__file__).resolve().parent.parent
-DEFAULT_MODEL = os.environ.get("VL_MODEL_DIR") or str(_here / "models" / "base")
+DEFAULT_MODEL = "C:/Users/yafo/.workbuddy/binaries/whisper-models/base"
 
 AUDIO = Path(sys.argv[1])
 OUT = Path(sys.argv[2])

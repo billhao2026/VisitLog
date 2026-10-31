@@ -13,11 +13,8 @@
   "engines": {
     "node": ">=22.5.0"
   },
-  "optionalDependencies": {
+  "dependencies": {
     "multer": "^2.2.0"
-  },
-  "comments": {
-    "_note": "multer 非必需：未安装时 server/api_upload.js 自动回落到 server/multipart.js 原生解析器"
   },
   "keywords": [
     "crm",
