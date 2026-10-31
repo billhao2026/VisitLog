@@ -38,7 +38,7 @@
 ### 方式 A：Docker（推荐，三条命令）
 
 ```bash
-git clone https://github.com/<你的用户名>/visitlog.git
+git clone https://github.com/billhao2026/visitlog.git
 cd visitlog
 docker compose up -d
 ```
@@ -52,7 +52,7 @@ docker compose up -d
 ### 方式 B：本地运行
 
 ```bash
-git clone https://github.com/<你的用户名>/visitlog.git
+git clone https://github.com/billhao2026/visitlog.git
 cd visitlog
 npm start
 ```

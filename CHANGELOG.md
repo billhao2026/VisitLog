@@ -90,5 +90,5 @@
 - **1.0.0** 之后的版本遵循语义化版本
 - 数据目录结构变更会标注**破坏性变更**，并在 README 的「目录结构」章节说明迁移方式
 
-[Unreleased]: https://github.com/<你的用户名>/visitlog/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/<你的用户名>/visitlog/releases/tag/v1.0.0
+[Unreleased]: https://github.com/billhao2026/visitlog/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/billhao2026/visitlog/releases/tag/v1.0.0

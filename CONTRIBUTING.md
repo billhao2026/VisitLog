@@ -74,9 +74,9 @@
 ### 拉取代码
 
 ```bash
-git clone https://github.com/<你的用户名>/visitlog.git
+git clone https://github.com/billhao2026/visitlog.git
 cd visitlog
-git remote add upstream https://github.com/<你的用户名>/visitlog.git
+git remote add upstream https://github.com/billhao2026/visitlog.git
 ```
 
 ### 安装（可选）
@@ -170,10 +170,10 @@ test('我的功能 · 正常工作', withServer(async (s) => {
 
 ```bash
 # 一次性：设置用户名占位符 + 建仓 + 推送
-node scripts/push-to-github.js <你的GitHub用户名> [你的邮箱]
+node scripts/push-to-github.js billhao2026 [你的邮箱]
 
 # 只替换文档里的用户名占位符（换用户名时重跑）
-node scripts/set-repo-owner.js <你的GitHub用户名> [你的邮箱]
+node scripts/set-repo-owner.js billhao2026 [你的邮箱]
 ```
 
 认证按 `GITHUB_TOKEN` → `gh` CLI → SSH key 的顺序自动检测。详见脚本内的提示。

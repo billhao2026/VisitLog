@@ -26,7 +26,7 @@ node -v
 ### 方式 A：命令行克隆（推荐）
 
 ```bash
-git clone https://github.com/<你的用户名>/visitlog.git
+git clone https://github.com/billhao2026/visitlog.git
 cd visitlog
 ```
 
