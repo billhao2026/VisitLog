@@ -74,9 +74,9 @@
 ### 拉取代码
 
 ```bash
-git clone https://github.com/billhao2026/visitlog.git
+git clone https://github.com/billhao2026/VisitLog.git
 cd visitlog
-git remote add upstream https://github.com/billhao2026/visitlog.git
+git remote add upstream https://github.com/billhao2026/VisitLog.git
 ```
 
 ### 安装（可选）

@@ -9,6 +9,22 @@
 
 ## [Unreleased]
 
+### 新增
+- **工作日推算**：待办到期日自动避让周末与手动标记的休假日；标记/取消休假日时自动重排所有未完成待办，接口返回顺延明细
+- **日程**：独立的日程速记页（`/api/journal`、`public/page-journal.js`）
+- **跟进唤醒台**：按沉默天数分层待唤醒客户，配可编辑的「重点聊 ①②③」与上次事项进展（`/api/followups/board`）
+- **聊点话术表**：`fu_talkpoints` 表 + 通用示例种子脚本
+
+### 修复
+- **零依赖模式上传失效**：原生 multipart 解析器在文件落盘前就交给上层读取，报 `ENOENT`
+- **改判反哺崩溃**：`ownerName()` 被误写进 SQL 字符串，被 SQLite 当作函数调用
+- **AI 返回空字段会清空已有摘要**：空串未被当作「未提供」处理
+
+### 变更
+- 脱敏：移除分类黑名单中的真实客户名，跟进唤醒台与手册里的行业专属话术改为通用表述
+- 依赖：`multer` 改为可选依赖，未安装时自动回落到内置解析器（零依赖可跑）
+- 路径：全部改为「环境变量优先 + 运行时探测」，移除本机绝对路径
+
 ### 计划中
 - 多行业分类字典模板包（设备制造 / 工程服务 / 医药流通 / 专业服务）
 - 术语表 CSV 批量导入
@@ -90,5 +106,5 @@
 - **1.0.0** 之后的版本遵循语义化版本
 - 数据目录结构变更会标注**破坏性变更**，并在 README 的「目录结构」章节说明迁移方式
 
-[Unreleased]: https://github.com/billhao2026/visitlog/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/billhao2026/visitlog/releases/tag/v1.0.0
+[Unreleased]: https://github.com/billhao2026/VisitLog/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/billhao2026/VisitLog/releases/tag/v1.0.0

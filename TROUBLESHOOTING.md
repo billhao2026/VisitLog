@@ -335,7 +335,7 @@ ls -lh data/backups/
 3. 实际结果 vs 期望结果
 4. **脱敏后**的日志
 
-> 提之前先看 [开放 Issue](https://github.com/billhao2026/visitlog/issues)，可能已经有人遇到并解决了。
+> 提之前先看 [开放 Issue](https://github.com/billhao2026/VisitLog/issues)，可能已经有人遇到并解决了。
 
 ---
 

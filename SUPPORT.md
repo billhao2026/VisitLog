@@ -18,7 +18,7 @@
 
 仓库主页 → **Issues** → **New issue**，GitHub 会引导你选模板。
 
-**提之前请先搜一下**：[搜索已有 Issue](https://github.com/billhao2026/visitlog/issues?q=is%3Aissue) —— 可能已经有人遇到并解决了。
+**提之前请先搜一下**：[搜索已有 Issue](https://github.com/billhao2026/VisitLog/issues?q=is%3Aissue) —— 可能已经有人遇到并解决了。
 
 ### 提好 Issue 的三件事
 

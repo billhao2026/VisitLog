@@ -32,7 +32,7 @@
 ## 三条命令跑起来
 
 ```bash
-git clone https://github.com/billhao2026/visitlog.git
+git clone https://github.com/billhao2026/VisitLog.git
 cd visitlog
 docker compose up -d
 ```
@@ -240,7 +240,7 @@ npm run demo    # 灌入虚构演示数据
 欢迎提 Issue、提 PR。详见 [CONTRIBUTING.md](CONTRIBUTING.md) 与 [行为准则](CODE_OF_CONDUCT.md)。
 
 ```bash
-git clone https://github.com/billhao2026/visitlog.git
+git clone https://github.com/billhao2026/VisitLog.git
 cd visitlog
 npm test        # 29 个冒烟测试，零新增依赖
 ```
