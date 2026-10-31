@@ -164,6 +164,22 @@ test('我的功能 · 正常工作', withServer(async (s) => {
 
 ---
 
+## Fork 之后推到自己仓库
+
+改完代码要推回自己的 fork，有现成脚本：
+
+```bash
+# 一次性：设置用户名占位符 + 建仓 + 推送
+node scripts/push-to-github.js <你的GitHub用户名> [你的邮箱]
+
+# 只替换文档里的用户名占位符（换用户名时重跑）
+node scripts/set-repo-owner.js <你的GitHub用户名> [你的邮箱]
+```
+
+认证按 `GITHUB_TOKEN` → `gh` CLI → SSH key 的顺序自动检测。详见脚本内的提示。
+
+---
+
 ## 代码规范
 
 ### 硬性约束（改之前务必读）
