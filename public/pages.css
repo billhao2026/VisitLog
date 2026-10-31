@@ -248,3 +248,32 @@ td.nowrap,th.nowrap{white-space:nowrap}
 .cust-in::placeholder{color:var(--ink4);font-size:11px}
 .cust-in:hover{border-color:var(--accent)}
 .cust-in:focus{background:var(--paper);border-style:solid}
+
+/* ── 跟进板块（30 天唤醒）── */
+.fu-row{
+  display:flex;gap:14px;align-items:flex-start;padding:13px 0;
+  border-bottom:1px solid var(--rule);
+}
+.fu-row:last-child{border-bottom:none}
+.fu-row:hover{background:var(--paper2)}
+.fu-pri{
+  flex:0 0 34px;text-align:center;padding:5px 0;border-radius:6px;
+  font-size:11px;letter-spacing:.06em;color:var(--ink3);
+  background:var(--paper2);border:1px solid var(--rule2);margin-top:2px;
+}
+.fu-pri.r{color:#fff;background:var(--red);border-color:var(--red)}
+.fu-pri.y{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+.fu-row .fu-name{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;font-size:13.5px}
+.fu-row .fu-suggest{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;margin-bottom:2px}
+.fu-row .fu-side{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end}
+
+/* 跟进板块 · 话术聊点区 */
+.fu-pending,.fu-talk{
+  margin:6px 0 2px;padding:8px 10px;border-radius:8px;
+}
+.fu-pending{background:var(--red-soft,#F9EBEA);border:1px solid #EBC9C7}
+.fu-talk{background:var(--accent-soft,#FCEFE4);border:1px solid #F0CDB6}
+.fu-pt{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.fu-ptx{font-size:13px;line-height:1.65;white-space:pre-wrap}
+.fu-ol{margin:0;padding-left:22px}
+.fu-ol li{font-size:13px;line-height:1.7;margin-bottom:2px}

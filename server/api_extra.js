@@ -90,6 +90,20 @@ module.exports = {
     return { ok: true };
   },
 
+  // ── 休假日（非工作日）：统计与提醒据此跳过 ──────────
+  'GET /api/nonworkdays': async () => {
+    const wd = require('./workdays.js');
+    return { ok: true, list: wd.getNonWorkdays() };
+  },
+
+  'POST /api/nonworkdays': async (req, res, b) => {
+    const wd = require('./workdays.js');
+    const list = wd.setNonWorkdays(b.dates || []);
+    // 新增/取消休假日 → 重新对齐未完成待办到期日（落在非工作日的顺延到下一工作日）
+    const shifted = wd.rescheduleOpenTodos();
+    return { ok: true, list, shifted };
+  },
+
   'GET /api/storage': async () => sens.storage(),
 
   'POST /api/cleanup': async (req, res, b) => {

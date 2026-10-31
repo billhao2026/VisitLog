@@ -7,7 +7,11 @@ const asr = require('./asr.js');
 const nm = require('./normalize.js');
 const contacts = require('./contacts.js');
 
-// 上传中间件：优先 multer，未安装时回落到原生 multipart 解析（保持零依赖可运行）
+const RAW = path.join(ROOT, 'audio', 'raw');
+fs.mkdirSync(RAW, { recursive: true });
+
+// 上传中间件：优先 multer（更快），未安装时回落到内置原生解析器，
+// 保持「零依赖也能跑起来」——这是本项目的核心卖点之一。
 let upload;
 try {
   const multer = require('multer');
@@ -16,9 +20,6 @@ try {
   upload = require('./multipart.js');
   console.log('[upload] 未找到 multer，启用内置 multipart 解析器');
 }
-
-const RAW = path.join(ROOT, 'audio', 'raw');
-fs.mkdirSync(RAW, { recursive: true });
 
 const okTypes = ['.m4a', '.mp3', '.wav', '.ogg', '.flac', '.amr', '.3gp', '.mp4', '.aac', '.opus', '.wma'];
 

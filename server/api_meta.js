@@ -56,7 +56,7 @@ module.exports = {
                      WHERE customer_id=? AND status!='archived'
                      ORDER BY pinned DESC, importance DESC, created_at DESC`, id);
     const fus = all(`SELECT id,ref_type,ref_id,content,result,author,created_at FROM followups
-                     WHERE (ref_type='customer' AND ref_id=?)
+                     WHERE (ref_type IN ('customer','stale_dismiss') AND ref_id=?)
                         OR id IN (SELECT f.id FROM followups f
                                   JOIN todos t ON f.ref_type='todo' AND f.ref_id=t.id
                                   WHERE t.customer_id=?)
@@ -128,29 +128,41 @@ module.exports = {
       sub[cat.id] = { id: cat.id, name: cat.name, parent_id: cat.parent_id, count: d.c };
     }
 
-    // 近 14 个工作日通话量（排除周六日）
+    // 近 14 个工作日通话量（排除周六日 + 休假日；遇休假日窗口自动顺延）
     const trend = [];
+    let nonWorkdaysUsed = [];
     {
+      const wd = require('./workdays.js');
+      nonWorkdaysUsed = wd.getNonWorkdays();
+      const nwSet = new Set(nonWorkdaysUsed);
       const days = [];
       const cur = new Date();
       while (days.length < 14) {
+        const s = wd.fmt(cur);
         const dow = cur.getDay();
-        if (dow !== 0 && dow !== 6) days.push(cur.toISOString().slice(0, 10));
+        if (dow !== 0 && dow !== 6 && !nwSet.has(s)) days.push(s);
         cur.setDate(cur.getDate() - 1);
       }
       days.reverse();
       for (const d of days) {
         const c = one('SELECT COUNT(*) c FROM calls WHERE substr(visited_at,1,10)=?', d);
-        trend.push({ date: d, count: c });
+        // 手动添加（手工待办，source='manual'）也计入当日电话量，按录入日期归日
+        const m = one("SELECT COUNT(*) c FROM todos WHERE source='manual' AND substr(created_at,1,10)=?", d);
+        trend.push({ date: d, count: c + m, callCount: c, manualCount: m });
       }
     }
 
-    // 待跟进（超期未回访客户）
+    // 待跟进（超期未回访客户，排除 30 天内已收口的——与跟进板块口径一致）
     const stale = all(`SELECT c.id, c.name, c.last_visit_at, c.level,
                        (SELECT COUNT(*) FROM todos t WHERE t.customer_id=c.id AND t.status='open') ot
                        FROM customers c
                        WHERE c.last_visit_at IS NOT NULL AND c.last_visit_at < ?
-                       ORDER BY ot DESC, c.last_visit_at LIMIT 20`, d30);
+                         AND NOT EXISTS (
+                           SELECT 1 FROM followups f
+                           WHERE f.ref_type='stale_dismiss' AND f.ref_id=c.id
+                             AND substr(f.created_at,1,10) >= ?
+                         )
+                       ORDER BY ot DESC, c.last_visit_at LIMIT 20`, d30, d30);
 
     // 最近跟进动态（编写式跟进留痕）
     const fuRows = all(`SELECT fu.*, t.content AS todo_content
@@ -199,13 +211,15 @@ module.exports = {
       },
       dist: Object.values(buckets).sort((a, b) => b.count - a.count),
       sub: Object.values(sub).sort((a, b) => b.count - a.count),
-      trend, stale, fuRecent, highlights, todoTop,
+      trend, stale, fuRecent, highlights, todoTop, nonWorkdays: nonWorkdaysUsed,
     };
   },
 
   // 队列状态（前端轮询用）
   'GET /api/queue': async () => {
     const asr = require('./asr.js');
+    const d30 = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+    const dd30 = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10); // 已收口排除窗（30天）
     return {
       ok: true,
       transcribing: all("SELECT id,title,transcribe_status FROM calls WHERE transcribe_status='transcribing'"),
@@ -214,8 +228,35 @@ module.exports = {
       openTodos: get("SELECT COUNT(*) c FROM todos WHERE status='open'").c,
       overdueTodos: get("SELECT COUNT(*) c FROM todos WHERE status='open' AND overdue=1").c,
       flagsOpen: get('SELECT COUNT(*) c FROM flags WHERE handled=0').c,
+      // 待唤醒家数（与跟进板块口径一致：排除 30 天内已收口的）
+      staleCustomers: get(`SELECT COUNT(*) c FROM customers c
+        WHERE c.last_visit_at IS NOT NULL AND c.last_visit_at < ?
+          AND NOT EXISTS (SELECT 1 FROM followups f
+            WHERE f.ref_type='stale_dismiss' AND f.ref_id=c.id AND substr(f.created_at,1,10) >= ?)`, d30, dd30).c,
       running: asr.isRunning(),
     };
+  },
+
+  // 工作日历（月视图）：逐日返回 通话数 / 手工数 / 周末 / 休假日
+  'GET /api/calendar': async (req, res, b, q) => {
+    const wd = require('./workdays.js');
+    let ym = String(q.get('ym') || '').trim();
+    if (!/^\d{4}-\d{2}$/.test(ym)) {
+      const d = new Date();
+      ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    }
+    const nwSet = new Set(wd.getNonWorkdays());
+    const y = Number(ym.slice(0, 4)), m = Number(ym.slice(5, 7));
+    const last = new Date(y, m, 0).getDate();
+    const days = [];
+    for (let i = 1; i <= last; i++) {
+      const date = ym + '-' + String(i).padStart(2, '0');
+      const dow = new Date(y, m - 1, i).getDay();
+      const calls = (get('SELECT COUNT(*) c FROM calls WHERE substr(visited_at,1,10)=?', date) || {}).c || 0;
+      const manual = (get("SELECT COUNT(*) c FROM todos WHERE source='manual' AND substr(created_at,1,10)=?", date) || {}).c || 0;
+      days.push({ date, dow, weekend: dow === 0 || dow === 6, holiday: nwSet.has(date), calls, manual });
+    }
+    return { ok: true, ym, days, today: today() };
   },
 
   'GET /api/logs': async (req, res, b, q) => {

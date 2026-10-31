@@ -137,16 +137,19 @@ window.Cust = (function () {
       bindEdit($('#drawer-body'), U, f, null, after);
     });
 
-    // ── 客户跟进记录（多角色时间线）──
+    // ── 客户跟进记录（多角色时间线，含 30 天唤醒"已处理"记录）──
     const FU_C = { 无进展: '', 推进中: 'y', 有突破: 'b', 已闭环: 'g' };
     async function loadFu() {
       const fr = await get(`/api/followups?type=customer&id=${id}`);
-      const list = fr.ok ? (fr.list || []) : [];
+      const fr2 = await get(`/api/followups?type=stale_dismiss&id=${id}`).catch(() => ({ ok: false }));
+      const list = [].concat(fr.ok ? (fr.list || []) : [], fr2.ok ? (fr2.list || []) : []);
+      list.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
       $('#c-fu').innerHTML = list.length ? list.map(f => `
         <div class="fu-bub">
           <div class="fu-head">
             <b style="color:var(--accent2);font-size:12px">${esc(f.author || OWNER())}</b>
             ${f.result ? `<span class="tag ${FU_C[f.result] || ''}">${esc(f.result)}</span>` : ''}
+            ${f.ref_type === 'stale_dismiss' ? '<span class="tag a" title="30 天未联系唤醒任务收口">🔔 唤醒收口</span>' : ''}
             <span class="muted" style="margin-left:auto;font-size:10.5px">${fmtDate(f.created_at, true)}</span>
           </div>
           <div class="fu-tx">${esc(f.content)}</div>
@@ -173,7 +176,7 @@ window.Cust = (function () {
         </div>
         <div class="side"><span class="muted" style="font-size:11px">${fmtDate(x.visited_at)}</span></div>
       </div>`).join('') : '<div class="empty" style="padding:16px">还没有通话记录</div>';
-    $$('#c-calls [data-call]').forEach(el => el.onclick = () => Call.open(el.dataset.call));
+    $$('#c-calls [data-call]').forEach(el => el.onclick = () => Call.open(el.dataset.call, c.id));
 
     const t = (r.todos || []).filter(x => x.status === 'open');
     $('#c-todos').innerHTML = t.length ? t.map(x => `

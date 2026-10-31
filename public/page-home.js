@@ -1,6 +1,6 @@
 /* 拜访志 · 概览页 */
 (function () {
-  const { $, esc, get, toast, fmtDate, rel, drawer } = App;
+  const { $, esc, get, post, toast, fmtDate, rel, drawer } = App;
   let charts = [];
   const kill = () => { charts.forEach(c => { try { c.dispose(); } catch (e) {} }); charts = []; };
   const mk = (el, opt) => { const c = echarts.init(el); c.setOption(opt); charts.push(c); return c; };
@@ -62,10 +62,40 @@
 
       <div class="card c12" style="padding-bottom:6px">
         <div class="rowflex" style="justify-content:space-between;align-items:baseline">
-          <h3 style="margin:0">近 14 个工作日通话量<span class="sub">已排除周六日 · 按拜访日期统计</span></h3>
+          <h3 style="margin:0">近 14 个工作日通话量<span class="sub">已排除周六日 · 含手动添加</span></h3>
           <span class="muted" style="font-size:11px">${s.trend.reduce((a, x) => a + x.count, 0)} 通 / 14 个工作日</span>
         </div>
         <div class="chart" id="ch-trend" style="height:190px;margin-top:8px"></div>
+      </div>
+
+      <div class="card c12">
+        <style>
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-hd{text-align:center;font-size:11px;color:#8A8175;padding:2px 0}
+.cal-cell{position:relative;min-height:48px;border:1px solid #E4DCCC;border-radius:6px;background:#FBF9F5;padding:5px 7px;cursor:pointer;transition:.12s}
+.cal-cell:hover{border-color:#C2410C;transform:translateY(-1px)}
+.cal-cell.wk{background:#F5F1E9;border-style:dashed;color:#B4AB9C;cursor:not-allowed}
+.cal-cell.wk:hover{border-color:#D6CBB6;transform:none}
+.cal-cell.hol{background:#FCEFE4;border-color:#C2410C}
+.cal-cell.today{box-shadow:inset 0 0 0 2px #C2410C}
+.cal-cell .cn{font-size:12.5px;font-weight:600}
+.cal-cell.hol .cn::after{content:' 休';font-size:10px;color:#C2410C;font-weight:400}
+.cal-cell .cd{position:absolute;right:5px;bottom:4px;font-size:10px;background:#C2410C;color:#fff;border-radius:9px;padding:0 5px;line-height:15px}
+        </style>
+        <div class="rowflex" style="justify-content:space-between;align-items:baseline">
+          <h3 style="margin:0">工作日历<span class="sub">点日期标记 / 取消休假日 · 周六日固定不计</span></h3>
+          <div class="rowflex" style="gap:6px;align-items:center">
+            <button class="btn sm" id="cal-prev">‹</button>
+            <b id="cal-ym" style="font-size:13px;min-width:96px;text-align:center"></b>
+            <button class="btn sm" id="cal-next">›</button>
+          </div>
+        </div>
+        <div id="cal-wrap" style="margin-top:10px"></div>
+        <div class="muted" style="font-size:11px;margin-top:8px">
+          <span style="display:inline-block;width:10px;height:10px;background:#F5F1E9;border:1px dashed #D6CBB6;border-radius:2px;vertical-align:-1px"></span> 周六日
+          &nbsp;&nbsp;<span style="display:inline-block;width:10px;height:10px;background:#FCEFE4;border:1px solid #C2410C;border-radius:2px;vertical-align:-1px"></span> 休假日（点击标记 / 取消）
+          &nbsp;&nbsp;右下角数字 = 当日通话（含手动添加）
+        </div>
       </div>
 
       <div class="card c12">
@@ -116,7 +146,8 @@
     // 趋势：单柱图，数值标在柱外
     mk($('#ch-trend', v), {
       grid: { left: 8, right: 12, top: 18, bottom: 4, containLabel: true },
-      tooltip: { trigger: 'axis', backgroundColor: '#1A1815', borderWidth: 0, textStyle: { color: '#FBF9F5', fontSize: 12 } },
+      tooltip: { trigger: 'axis', backgroundColor: '#1A1815', borderWidth: 0, textStyle: { color: '#FBF9F5', fontSize: 12 },
+        formatter: (ps) => { const t = s.trend[ps[0].dataIndex]; if (!t) return ''; const cc = t.callCount == null ? t.count : t.callCount; const mm = t.manualCount || 0; return `${t.date}<br/>合计 ${t.count} 通（通话 ${cc} · 手动 ${mm}）`; } },
       xAxis: {
         type: 'category', data: s.trend.map(x => x.date.slice(5)),
         axisLine: { lineStyle: { color: '#D6CBB6' } }, axisTick: { show: false },
@@ -130,6 +161,59 @@
           formatter: (p) => (p.value > 0 ? p.value : '') },
       }],
     });
+
+    // ── 工作日历：月视图，点日期标记 / 取消休假日 ──
+    let calYm = '';
+    let allNw = [];
+    async function renderCal(ym) {
+      const [c, nwRes] = await Promise.all([
+        get('/api/calendar' + (ym ? '?ym=' + ym : '')),
+        get('/api/nonworkdays'),
+      ]);
+      if (!c.ok) return;
+      allNw = (nwRes && nwRes.list) || [];
+      calYm = c.ym;
+      const ymEl = $('#cal-ym', v);
+      if (ymEl) ymEl.textContent = c.ym.slice(0, 4) + ' 年 ' + c.ym.slice(5, 7) + ' 月';
+      const wrap = $('#cal-wrap', v);
+      if (!wrap) return;
+      const HD = ['一', '二', '三', '四', '五', '六', '日'];
+      const firstDow = new Date(Number(c.ym.slice(0, 4)), Number(c.ym.slice(5, 7)) - 1, 1).getDay();
+      const lead = (firstDow + 6) % 7;   // 周一为第一列
+      let html = '<div class="cal-grid">' + HD.map(h => `<div class="cal-hd">${h}</div>`).join('');
+      for (let i = 0; i < lead; i++) html += '<div></div>';
+      for (const dd of c.days) {
+        const isToday = dd.date === c.today;
+        const n = dd.calls + dd.manual;
+        const tip = dd.date + (dd.weekend ? '（周六日·不计工作日）' : dd.holiday ? '（休假日·点击取消）' : '（工作日·点击标记为休假日）')
+          + '｜通话 ' + dd.calls + ' · 手动 ' + dd.manual;
+        html += `<div class="cal-cell${dd.weekend ? ' wk' : ''}${dd.holiday ? ' hol' : ''}${isToday ? ' today' : ''}"
+            data-d="${dd.date}" data-wk="${dd.weekend ? 1 : 0}" title="${tip}">
+          <span class="cn">${Number(dd.date.slice(-2))}</span>${n > 0 ? `<span class="cd">${n}</span>` : ''}</div>`;
+      }
+      html += '</div>';
+      wrap.innerHTML = html;
+      App.$$('.cal-cell', wrap).forEach(el => el.onclick = async () => {
+        if (el.dataset.wk === '1') { toast('周六日固定不计工作日'); return; }
+        const date = el.dataset.d;
+        // 基于「全量」休假日列表增删（不能用当前月的，否则会覆盖掉其他月份的标记）
+        const isHol = allNw.indexOf(date) >= 0;
+        const next = isHol ? allNw.filter(x => x !== date) : allNw.concat([date]);
+        const r = await post('/api/nonworkdays', { dates: next });
+        if (r.ok) { allNw = r.list || []; toast(isHol ? ('已取消休假日：' + date) : ('已标记休假日：' + date)); renderCal(calYm); }
+      });
+    }
+    if ($('#cal-prev', v)) $('#cal-prev', v).onclick = () => {
+      const y = Number(calYm.slice(0, 4)), m = Number(calYm.slice(5, 7));
+      const dd = new Date(y, m - 2, 1);
+      renderCal(dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0'));
+    };
+    if ($('#cal-next', v)) $('#cal-next', v).onclick = () => {
+      const y = Number(calYm.slice(0, 4)), m = Number(calYm.slice(5, 7));
+      const dd = new Date(y, m, 1);
+      renderCal(dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0'));
+    };
+    await renderCal('');
 
     // 分布：横向条形，不贴文字标签（左侧轴名已足够），数值放柱外
     const dist = s.dist.slice(0, 8);

@@ -28,6 +28,9 @@ ensureCol('customers', 'share_token', "TEXT DEFAULT ''");
 ensureCol('followups', 'author', "TEXT DEFAULT ''");
 ensureCol('todos', 'done_by', "TEXT DEFAULT ''");
 
+// 跟进板块 · 聊点建议表（2026-10-08）：逐客户"重点聊什么123" + 上次事项确认
+db.exec(fs.readFileSync(path.join(__dirname, 'fu_talkpoints.sql'), 'utf8'));
+
 // 重点事项 · 归档机制（2026-09-08）：status open=待处理 archived=已处理（保留节点，仅从重点列表隐藏）
 ensureCol('highlights', 'status', "TEXT DEFAULT 'open'");
 ensureCol('highlights', 'archived_at', "TEXT DEFAULT ''");

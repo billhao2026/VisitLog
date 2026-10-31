@@ -3,6 +3,16 @@ const fs = require('fs');
 const path = require('path');
 const { all, get, run, now, addLog } = require('./db.js');
 const fb = require('./feedback.js');
+const contacts = require('./contacts.js');
+
+function has(v) { return v !== undefined && v !== null && String(v).trim() !== ''; }
+function buildStandardName(cust, contact, sales) {
+  if (!cust) return '';
+  let n = String(cust).trim();
+  if (has(contact)) n += ' ' + String(contact).trim();
+  if (has(sales)) n += '--' + String(sales).trim();
+  return n;
+}
 
 // 取一通待分析通话的完整上下文（含字典、规则预筛、客户历史）
 function context(id) {
@@ -60,6 +70,17 @@ module.exports = {
       const cid = nm.resolveCustomer(b.customer_name, { at: c.visited_at });
       run('UPDATE calls SET customer_id=? WHERE id=?', cid, id);
       nm.touch(cid, c.visited_at); // 建立关联后再统计次数
+      // 组合标准客户名称：公司名称 联系人--业务员；并同步联系人/业务员/类型/地区
+      const stdName = buildStandardName(b.customer_name, b.contact_name, b.sales);
+      const up = ['name=?'];
+      const args = [stdName];
+      if (has(b.contact_name)) { up.push('contact_name=?'); args.push(String(b.contact_name).trim()); }
+      if (has(b.sales)) { up.push('sales=?'); args.push(String(b.sales).trim()); }
+      if (has(b.type)) { up.push('type=?'); args.push(String(b.type).trim()); }
+      if (has(b.region)) { up.push('region=?'); args.push(String(b.region).trim()); }
+      args.push(now(), cid);
+      run(`UPDATE customers SET ${up.join(',')}, updated_at=? WHERE id=?`, ...args);
+      try { contacts.enrichCustomer(cid); } catch (e) { console.error('[ai] enrich 客户联系人失败:', e.message); }
     }
     // 只在传了非空值时才覆盖，避免 AI 返回空字段把已有内容清掉
     const keep = (v, fallback) => (v === undefined || v === null || String(v).trim() === '') ? fallback : v;

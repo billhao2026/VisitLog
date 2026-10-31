@@ -11,8 +11,23 @@ const TODO_SQL = `SELECT t.*, c.name AS customer_name,
   (SELECT created_at FROM followups f WHERE f.ref_type='todo' AND f.ref_id=t.id ORDER BY f.id DESC LIMIT 1) AS fu_last_at
   FROM todos t LEFT JOIN customers c ON c.id=t.customer_id`;
 
+const wd = require('./workdays.js');
+
+// 到期日若落在非工作日（周六日 / 休假日）→ 顺延到下一个工作日
+function shiftDue(d) {
+  if (!d) return null;
+  const s = String(d).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return d;
+  return wd.nextWorkday(s);
+}
+
 function refreshOverdue() {
   const t = today();
+  // 休假日（非工作日）不刷新超期状态：视为顺延，避免休假导致的「断档」误判
+  try {
+    const wd = require('./workdays.js');
+    if (wd.isNonWorkday(t)) return;
+  } catch (e) { /* 忽略，按原逻辑执行 */ }
   run("UPDATE todos SET overdue=1 WHERE status='open' AND due_date IS NOT NULL AND due_date < ?", t);
   run("UPDATE todos SET overdue=0 WHERE status='open' AND (due_date IS NULL OR due_date >= ?)", t);
 }
@@ -91,7 +106,7 @@ module.exports = {
     run(`INSERT INTO todos(id,call_id,customer_id,content,assignee,due_date,priority,status,source,created_at,updated_at)
          VALUES(?,?,?,?,?,?,?,'open','manual',?,?)`,
       id, b.call_id || null, b.customer_id || null, b.content,
-      b.assignee || ownerName(), b.due_date || null, b.priority || '中', now(), now());
+      b.assignee || ownerName(), shiftDue(b.due_date), b.priority || '中', now(), now());
     addLog('todo_add', id, b.content.slice(0, 60));
     // 手动添加（无通话上下文）→ 自动建档关联 + 生成重点事项
     let link = null;
@@ -121,9 +136,10 @@ module.exports = {
       }
       return { ok: false, err: 'unsupported field: ' + f };
     }
-    run(`UPDATE todos SET ${f}=?, updated_at=? WHERE id=?`, v, now(), id);
-    addLog('todo_edit', id, `${f} → ${v}`);
-    return { ok: true };
+    const val = f === 'due_date' ? shiftDue(v) : v;
+    run(`UPDATE todos SET ${f}=?, updated_at=? WHERE id=?`, val, now(), id);
+    addLog('todo_edit', id, `${f} → ${val}`);
+    return { ok: true, value: val };
   },
 
   'DELETE /api/todos/:id': async (req) => {

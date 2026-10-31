@@ -30,6 +30,7 @@ window.Setup = (function () {
   async function open() {
     const s = await get('/api/settings');
     const st = await get('/api/storage');
+    const nw = await get('/api/nonworkdays');
     const set = s.settings;
     if (!s.ok) return;
 
@@ -109,6 +110,20 @@ window.Setup = (function () {
         </div>
       </div>
 
+      <h3 style="font-size:13px;margin:20px 0 10px">📅 休假日（非工作日）</h3>
+      <div class="card" style="background:var(--paper2)">
+        <div class="muted" style="font-size:12px;margin-bottom:8px;line-height:1.7">
+          外出 / 请假等无法跟进的日子标在这里。系统会<b>跳过这些日期</b>：
+          「近 14 个工作日通话量」窗口自动顺延、不出现 0 通空柱；待办「超期 / 今日到期」当天不刷新（视为顺延）；周报不视作断档。
+        </div>
+        <div class="rowflex" style="gap:8px;align-items:flex-end">
+          <div style="flex:0 0 180px"><label class="muted" style="font-size:11px">要标记的日期</label>
+            <input id="nw-date" type="date" style="width:100%"></div>
+          <button class="btn pri sm" id="nw-add">标记为休假日</button>
+        </div>
+        <div id="nw-list" style="margin-top:10px"></div>
+      </div>
+
       <div class="divider"></div>
       <div class="muted" style="font-size:11px;line-height:1.7">
         服务进程本身仅占约 50MB 内存；转写时临时加载模型，结束后立即释放。<br>
@@ -116,6 +131,31 @@ window.Setup = (function () {
       </div>`);
 
     refresh(st);
+
+    // 休假日（非工作日）管理
+    const nwBox = $('#nw-list');
+    let nwList = (nw && nw.list) || [];
+    function renderNw() {
+      if (!nwBox) return;
+      nwBox.innerHTML = nwList.length
+        ? nwList.map(d => `<span class="tag" style="margin:0 6px 6px 0;display:inline-block">${esc(d)} <a href="#" data-nw="${esc(d)}" style="color:var(--red);text-decoration:none;margin-left:4px">✕</a></span>`).join('')
+        : '<span class="muted" style="font-size:12px">暂无（未标记任何休假日）</span>';
+      nwBox.querySelectorAll('[data-nw]').forEach(a => a.onclick = async (e) => {
+        e.preventDefault();
+        const d = a.getAttribute('data-nw');
+        const r = await post('/api/nonworkdays', { dates: nwList.filter(x => x !== d) });
+        if (r.ok) { nwList = r.list; renderNw(); toast('已移除休假日：' + d); }
+      });
+    }
+    renderNw();
+    if ($('#nw-add')) $('#nw-add').onclick = async () => {
+      const d = $('#nw-date').value;
+      if (!d) return toast('请先选择日期');
+      if (nwList.includes(d)) return toast('该日期已在休假日列表中');
+      const r = await post('/api/nonworkdays', { dates: nwList.concat([d]) });
+      if (r.ok) { nwList = r.list; renderNw(); toast('已标记休假日：' + d); }
+    };
+
     // 操作手册：新页签打开（不挤占当前工作状态）
     $('#open-manual').onclick = () => window.open('/manual.html', '_blank');
     // 口令保存：非空=开启/修改；空=关闭

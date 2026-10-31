@@ -34,10 +34,10 @@ function localModel(name) {
 // 模型查找顺序：项目内 models/ → 环境变量 VL_MODEL_DIR → 全局 whisper-models → 自动降级 small/base
 function modelPath() {
   const s = get("SELECT v FROM settings WHERE k='model'");
-  const want = s ? s.v : 'small';
-  if (want) {
-    const l = localModel(want);
-    if (l) return l;
+  const name = s ? s.v : 'base';
+  if (name === 'small') {
+    const p = path.join(ROOT, 'models', 'small');
+    if (fs.existsSync(p)) return p;
   }
   const envDir = process.env.VL_MODEL_DIR;
   if (envDir && fs.existsSync(envDir)) return envDir;

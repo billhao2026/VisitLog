@@ -113,6 +113,64 @@ for (const r of catDist) {
   catAgg[top.name] = (catAgg[top.name] || 0) + r.n;
 }
 
+// ── 近 N 期趋势（各周五 18:00 窗口的通话/时长/客户数，含本期）──
+function trendN() {
+  const arr = [];
+  const end = new Date(weekEndDT);
+  for (let i = 3; i >= 0; i--) {
+    const e = new Date(end.getTime() - i * 7 * 864e5);
+    const s = new Date(e.getTime() - 7 * 864e5);
+    const wStart = fmtDT(s), wEnd = fmtDT(e);
+    const n = G('SELECT COUNT(*) n, COALESCE(SUM(duration_sec),0) sec FROM calls WHERE visited_at>? AND visited_at<=?', wStart, wEnd);
+    const cust = G('SELECT COUNT(DISTINCT customer_id) n FROM calls WHERE visited_at>? AND visited_at<=?', wStart, wEnd);
+    const fu = G('SELECT COUNT(*) n FROM followups WHERE created_at>? AND created_at<=?', wStart, wEnd);
+    const cl = G("SELECT COUNT(*) n FROM followups WHERE created_at>? AND created_at<=? AND result='已闭环'", wStart, wEnd);
+    arr.push({ label: (e.getMonth() + 1) + '/' + e.getDate(), calls: n.n, sec: n.sec, customers: cust.n, fu: fu.n, fuClosed: cl.n });
+  }
+  return arr;
+}
+const trend = trendN();
+
+// ── 销售维度（本周活跃 + 全量建档）──
+const salesActive = Q(`SELECT c.sales, COUNT(DISTINCT c.id) cust_n, COUNT(*) call_n,
+  COALESCE(SUM(cl.duration_sec),0) sec, COALESCE(AVG(cl.quality_score),0) avg_q
+  FROM calls cl JOIN customers c ON c.id=cl.customer_id
+  WHERE cl.visited_at > ? AND cl.visited_at <= ?
+  GROUP BY c.sales ORDER BY call_n DESC, sec DESC`, weekStart, weekEnd).filter(r => r.sales);
+const salesAll = Q(`SELECT COALESCE(NULLIF(sales,''),'未指派') sales, COUNT(*) n FROM customers GROUP BY sales`);
+
+// ── 情绪归一化 ──
+const sentMap = { positive: '正面', 积极: '正面', neutral: '中性', 中性: '中性', negative: '负面', 消极: '负面' };
+const sentDist = {};
+for (const c of calls) {
+  const k = sentMap[c.sentiment] || '未标记';
+  sentDist[k] = (sentDist[k] || 0) + 1;
+}
+
+// ── 质量分分布与均值 ──
+const qScored = calls.filter(c => c.quality_score);
+const qDist = {};
+for (const c of qScored) qDist[c.quality_score] = (qDist[c.quality_score] || 0) + 1;
+const qAvg = qScored.length ? Math.round(qScored.reduce((s, c) => s + c.quality_score, 0) / qScored.length * 10) / 10 : 0;
+
+// ── 本周沉淀（highlights 按类型）──
+const hlWeekDist = {};
+for (const h of highlightsNew) hlWeekDist[h.kind] = (hlWeekDist[h.kind] || 0) + 1;
+
+// ── 未来 14 天待办到期日历 ──
+const d14 = fmtDate(new Date(now.getTime() + 14 * 864e5));
+const dueCal = Q(`SELECT due_date, COUNT(*) n, SUM(priority IN ('高','high')) high_n
+  FROM todos WHERE status='open' AND due_date IS NOT NULL AND due_date!='' AND due_date > ? AND due_date <= ?
+  GROUP BY due_date ORDER BY due_date`, fmtDate(weekEndDT), d14);
+
+// ── 高质量通话榜（quality>=7，本周）──
+const topCalls = calls.filter(c => c.quality_score >= 7)
+  .sort((a, b) => b.quality_score - a.quality_score || b.duration_sec - a.duration_sec).slice(0, 5)
+  .map(c => ({ title: c.title, quality: c.quality_score, sec: c.duration_sec, customer: c.customer_name, date: (c.visited_at || '').slice(5, 10), summary: c.summary || '' }));
+
+// ── priority 归一化（'高'/'high' → 高）──
+const prio = p => p === '高' || p === 'high' ? '高' : p === '中' || p === 'medium' ? '中' : '低';
+
 // ── 汇总统计 ──
 const stats = {
   callCount: calls.length,
@@ -128,9 +186,23 @@ const stats = {
   todosOpen: todosOpen.length,
   overdue: todosOpen.filter(t => t.overdue === 1).length,
   flagsOpen: flags.length,
-  highOpen: todosOpen.filter(t => t.priority === '高').length,
+  highOpen: todosOpen.filter(t => prio(t.priority) === '高').length,
+  highOpenPrio: todosOpen.map(t => prio(t.priority)).filter(p => p === '高').length,
+  qAvg,
+  sentDist,
 };
 
+// ── 周期内休假日（非工作日）──
+let nonWorkdays = [];
+try {
+  const nwRow = db.prepare("SELECT v FROM settings WHERE k='nonWorkdays'").get();
+  if (nwRow && nwRow.v) {
+    const all = JSON.parse(nwRow.v);
+    if (Array.isArray(all)) nonWorkdays = all.filter(d => d >= weekStartDay && d <= weekEndDay).sort();
+  }
+} catch (e) { nonWorkdays = []; }
+
 const out = { ok: true, weekStart, weekEnd, weekStartDay, weekEndDay, stats, calls, followups, flags,
-  todos: { todosNew, todosDone, todosOpen }, highlightsNew, highlightsOpen, activeCustomers, stale, levelDist, catAgg };
+  todos: { todosNew, todosDone, todosOpen }, highlightsNew, highlightsOpen, activeCustomers, stale, levelDist, catAgg,
+  trend, salesActive, salesAll, qDist, hlWeekDist, dueCal, topCalls, nonWorkdays };
 console.log(JSON.stringify(out));

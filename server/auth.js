@@ -16,20 +16,6 @@ function isLocal(addr) {
   return ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(addr || '');
 }
 
-// 取真实客户端 IP：反代（Caddy/Nginx）场景下 remoteAddress 恒为 127.0.0.1，
-// 必须回退到 X-Forwarded-For，否则所有外网请求都会被误判为"本机"而直接放行，
-// 导致访问口令形同虚设。取逗号分隔的第一段（最外层客户端）。
-function clientIp(req) {
-  const xf = req.headers['x-forwarded-for'];
-  if (xf) {
-    const first = String(xf).split(',')[0].trim();
-    if (first) return first;
-  }
-  const xr = req.headers['x-real-ip'];
-  if (xr && String(xr).trim()) return String(xr).trim();
-  return req.socket.remoteAddress || '';
-}
-
 function tokenOf(req) {
   const ck = req.headers.cookie || '';
   const m = ck.match(/(?:^|;\s*)vl_s=([^;]+)/);
@@ -50,7 +36,7 @@ function loadValid(t) {
 // 校验当前请求是否被放行（仅用于非豁免的 /api 与 /audio）
 function pass(req) {
   if (!enabled()) return { ok: true, on: false };
-  if (isLocal(clientIp(req))) return { ok: true, on: true, local: true };
+  if (isLocal(req.socket.remoteAddress)) return { ok: true, on: true, local: true };
   if (loadValid(tokenOf(req))) return { ok: true, on: true };
   return { ok: false, on: true };
 }
@@ -82,4 +68,4 @@ function logout(token) {
   run('DELETE FROM auth_sessions WHERE token=?', token);
 }
 
-module.exports = { enabled, pass, login, logout, tokenOf, passcode, clientIp };
+module.exports = { enabled, pass, login, logout, tokenOf, passcode };

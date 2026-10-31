@@ -15,7 +15,7 @@ const os = require('os');
 const path = require('path');
 
 const BASE = process.argv[2] || 'http://localhost:8897';
-const ROUTES = ['home', 'calls', 'todos', 'highlights', 'flags', 'customers', 'dict'];
+const ROUTES = ['home', 'calls', 'todos', 'highlights', 'flags', 'customers', 'dict', 'journal', 'followups'];
 
 // ── 页面内探测脚本（对当前页面求值，同步返回 JSON 字符串）──
 const PROBE = `
