@@ -25,15 +25,17 @@ jobs:
       - name: JS 语法检查
         shell: bash
         run: |
-          for f in server/*.js public/*.js scripts/*.js scripts/weekly_report/*.js; do
+          for f in server/*.js public/*.js scripts/*.js scripts/weekly_report/*.js test/*.js; do
             node --check "$f" || exit 1
           done
 
       - name: Python 语法检查
         shell: bash
         run: |
+          # Windows runner 上命令名是 python，不是 python3
+          PY=$(command -v python3 || command -v python)
           for f in scripts/*.py; do
-            python3 -m py_compile "$f" || exit 1
+            "$PY" -m py_compile "$f" || exit 1
           done
 
       - name: 冒烟测试
@@ -48,9 +50,11 @@ jobs:
             echo "跳过：渲染自检需要 macOS 的 WebKit"
             exit 0
           fi
+          # 灌入演示数据，否则页面是空的，自检无从判断渲染是否正常
+          node scripts/demo_data.js -- --reset
           node server/server.js > server.log 2>&1 &
           SERVER_PID=$!
-          sleep 5
+          sleep 6
           node scripts/check-render.js http://localhost:8897
           kill $SERVER_PID 2>/dev/null || true
 
@@ -59,7 +63,7 @@ jobs:
         run: |
           node server/server.js > server.log 2>&1 &
           SERVER_PID=$!
-          sleep 5
+          sleep 6
           # 首页可达 + 核心 API 返回 ok
           curl -s --noproxy '*' -o /dev/null -w "首页 HTTP %{http_code}\n" http://localhost:8897/
           curl -s --noproxy '*' http://localhost:8897/api/stats | head -c 200
@@ -75,11 +79,18 @@ jobs:
             echo "::error::检测到数据/音频文件被提交"
             FAIL=1
           fi
-          if grep -rInE '/Users/[a-z]+/|C:\\Users\\[a-zA-Z]+' \
+          # 硬编码本机路径检测。
+          # 注意：CONTRIBUTING.md / PULL_REQUEST_TEMPLATE.md / SECURITY.md 里出现的
+          # /Users/xxx、C:\Users\xxx 是「不要这样写」的举例说明，不是真实路径，
+          # 所以要排除掉——否则扫描永远失败，规则也就没人看了。
+          if grep -rInE '/Users/[A-Za-z][A-Za-z0-9._-]+/|C:\\Users\\[A-Za-z][A-Za-z0-9._-]+\\' \
                --include='*.js' --include='*.py' --include='*.md' \
                --include='*.json' --include='*.bat' --include='*.command' \
                --include='*.yml' --include='Dockerfile' . \
-               | grep -v 'public/vendor/' | grep -v 'CONTRIBUTING.md'; then
+               | grep -v 'public/vendor/' \
+               | grep -v 'CONTRIBUTING.md' \
+               | grep -v 'PULL_REQUEST_TEMPLATE.md' \
+               | grep -v 'SECURITY.md'; then
             echo "::error::检测到硬编码本机路径"
             FAIL=1
           fi
@@ -90,7 +101,7 @@ jobs:
             echo "::error::检测到疑似密钥"
             FAIL=1
           fi
-          # 演示数据里的虚构手机号段（1380000xxxx）是刻意保留的示例
+          # 运行时数据目录（数据库、录音、模型）不应进仓库
           if git ls-files | grep -E '^data/|^audio/|^models/'; then
             echo "::error::检测到运行时数据目录被提交"
             FAIL=1

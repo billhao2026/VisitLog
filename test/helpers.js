@@ -64,12 +64,33 @@ async function waitReady(port, timeoutMs = 20000) {
 }
 
 /**
+ * 让操作系统分配一个当前空闲的端口
+ * @returns {Promise<number>}
+ */
+function findFreePort() {
+  return new Promise((resolve, reject) => {
+    const net = require('net');
+    const srv = net.createServer();
+    srv.unref();
+    srv.on('error', reject);
+    srv.listen(0, '127.0.0.1', () => {
+      const p = srv.address().port;
+      srv.close(() => resolve(p));
+    });
+  });
+}
+
+/**
  * 启动一个隔离的服务实例
  * @returns {Promise<{port:number, dir:string, get:Function, post:Function, stop:Function}>}
  */
 async function startServer(opts = {}) {
   const dir = opts.dir || makeSandbox();
-  const port = opts.port || (10000 + Math.floor(Math.random() * 40000));
+  // 端口分配：先让操作系统分配一个空闲端口（port 0），拿到号立刻释放，
+  // 再用它启动服务。
+  // 之前用随机数选端口有竞态——两个用例可能撞到同一个号，
+  // 导致其中一个报 EADDRINUSE（CI 上已实际发生）。
+  const port = opts.port || await findFreePort();
   const proc = spawn(process.execPath, ['server/server.js'], {
     cwd: dir,
     env: { ...process.env, PORT: String(port), VL_OWNER: '测试员' },
