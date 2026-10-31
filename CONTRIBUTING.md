@@ -76,7 +76,7 @@
 ```bash
 git clone https://github.com/<你的用户名>/visitlog.git
 cd visitlog
-git remote add upstream https://github.com/<主仓库>/visitlog.git
+git remote add upstream https://github.com/<你的用户名>/visitlog.git
 ```
 
 ### 安装（可选）
