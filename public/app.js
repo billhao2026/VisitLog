@@ -143,6 +143,7 @@ window.App = (function () {
   ];
   let cur = 'home';
   let counts = {};
+  let owner = '';            // 当前使用者名（跟进人/记录人默认值），来自 /api/settings
 
   function renderTabs() {
     $('#tabs').innerHTML = TABS.map(([k, label]) =>
@@ -230,15 +231,27 @@ window.App = (function () {
     $('#qbtn').onclick = () => Upload.open();
     const setBtn = $('#setbtn');
     if (setBtn && window.Setup) setBtn.onclick = () => Setup.open();
-    route();
-    pollQueue();
-    setInterval(pollQueue, 2500);
+    // 先取使用者名再首屏渲染，避免首次渲染时跟进人显示为空
+    loadOwner().finally(() => {
+      route();
+      pollQueue();
+      setInterval(pollQueue, 2500);
+    });
+  }
+
+  // 读取当前使用者名（失败不阻塞渲染）
+  async function loadOwner() {
+    try {
+      const r = await get('/api/settings');
+      if (r && r.ok && r.settings) owner = String(r.settings.owner || '');
+    } catch (e) { /* 忽略 */ }
   }
 
   return {
     $, $$, api, get, post, del, esc, toast, drawer, closeDrawer,
     fmtDate, fmtDur, rel, bindEdit, page, boot, route, echartsReady,
     setCounts: (c) => { counts = Object.assign(counts, c); renderTabs(); },
+    get owner() { return owner; },
     get cur() { return cur; },
   };
 })();

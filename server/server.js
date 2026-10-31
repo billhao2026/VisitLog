@@ -8,6 +8,7 @@ const asr = require('./asr.js');
 const sens = require('./sensitive.js');
 const contacts = require('./contacts.js');
 const auth = require('./auth.js');
+const dict = require('./seed.js');
 
 // 放行前缀（分享页与其 API 自带 token 鉴权；口令登录接口本身）
 function isExempt(p) {
@@ -186,6 +187,7 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`  手机   http://${ip}:${PORT}/     (需与电脑同一 WiFi)`);
   console.log('');
   sens.seed();
+  dict.seed();                                         // 分类字典 + 术语 + 设置项（首次启动写入）
   contacts.enrichAll();                                // 启动即给存量客户回填联系人姓名/电话
   contacts.migrateNotes();                             // 老备注迁入客户跟进记录（一次性）
   sens.cleanupAll();                                   // 启动即清：录音超保留期 / tmp / 旧日志

@@ -25,7 +25,7 @@ ensureCol('customers', 'sales', "TEXT DEFAULT ''");
 ensureCol('customers', 'contact_name', "TEXT DEFAULT ''");
 ensureCol('customers', 'contact_phone', "TEXT DEFAULT ''");
 ensureCol('customers', 'share_token', "TEXT DEFAULT ''");
-ensureCol('followups', 'author', "TEXT DEFAULT 'Bill'");
+ensureCol('followups', 'author', "TEXT DEFAULT ''");
 ensureCol('todos', 'done_by', "TEXT DEFAULT ''");
 
 // 重点事项 · 归档机制（2026-09-08）：status open=待处理 archived=已处理（保留节点，仅从重点列表隐藏）
@@ -105,13 +105,25 @@ function now() {
 
 function today() { return now().slice(0, 10); }
 
-function addLog(action, target, detail, who = 'Bill') {
+// 当前使用者名（跟进人 / 记录人的默认值）
+// 优先级：settings.owner（界面可改） > 环境变量 VL_OWNER > 空字符串
+let ownerCache = null;
+function ownerName() {
+  if (ownerCache === null) {
+    const s = get("SELECT v FROM settings WHERE k='owner'");
+    ownerCache = (s && s.v) ? String(s.v) : (process.env.VL_OWNER || '');
+  }
+  return ownerCache;
+}
+function resetOwnerCache() { ownerCache = null; }
+
+function addLog(action, target, detail, who) {
   db.prepare('INSERT INTO logs(ts,who,action,target,detail) VALUES(?,?,?,?,?)')
-    .run(now(), who, action, target || '', detail || '');
+    .run(now(), who === undefined ? ownerName() : who, action, target || '', detail || '');
 }
 
 function uuid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
-module.exports = { db, all, get, run, exec, backup, now, today, addLog, uuid, ROOT, DB_PATH };
+module.exports = { db, all, get, run, exec, backup, now, today, addLog, uuid, ROOT, DB_PATH, ownerName, resetOwnerCache };

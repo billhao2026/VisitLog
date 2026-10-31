@@ -1,4 +1,8 @@
 /* 拜访志 · 客户列表 + 客户详情抽屉 */
+
+// 当前使用者名（跟进人默认值）：来自服务端 settings，未加载时回退空串
+const OWNER = () => (window.App && window.App.owner) || '';
+
 window.Cust = (function () {
   const { $, $$, get, post, esc, toast, fmtDate, rel, drawer, closeDrawer, bindEdit } = App;
   let id = null;
@@ -33,8 +37,8 @@ window.Cust = (function () {
             title="客户电话（录音自动提炼，可改）"></td>
           <td class="nowrap"><input class="cust-in" data-f="sales" value="${esc(c.sales || '')}" placeholder="填业务员"
             title="对接业务员（该客户主要由谁跑）"></td>
-          <td class="nowrap"><input class="cust-in" data-f="owner" value="${esc(c.owner || 'Bill')}" placeholder="Bill"
-            title="跟进人（默认 Bill，可改）"></td>
+          <td class="nowrap"><input class="cust-in" data-f="owner" value="${esc(c.owner || OWNER())}" placeholder="${esc(OWNER() || '跟进人')}"
+            title="跟进人（默认 ${esc(OWNER() || '当前使用者')}，可改）"></td>
           <td class="nowrap">${fmtDate(c.last_visit_at)}<div class="muted" style="font-size:11px">${rel(c.last_visit_at)}</div></td>
           <td class="num nowrap">${c.visit_count || 0}</td>
           <td class="num nowrap">${c.open_todos || 0}</td>
@@ -80,7 +84,7 @@ window.Cust = (function () {
       <span class="kv" style="align-items:center"><span class="k">对接</span>
         <span class="ed tag" id="ce-sales" data-raw="${esc(c.sales || '')}" style="border-color:var(--rule2)">${c.sales ? `<span>${esc(c.sales)}</span>` : '未分配'}</span></span>
       <span class="kv" style="align-items:center"><span class="k">跟进</span>
-        <span class="ed tag" id="ce-owner" data-raw="${esc(c.owner || 'Bill')}" style="border-color:var(--rule2)">${esc(c.owner || 'Bill')}</span></span>
+        <span class="ed tag" id="ce-owner" data-raw="${esc(c.owner || OWNER())}" style="border-color:var(--rule2)">${esc(c.owner || OWNER())}</span></span>
       <span class="ed" id="ce-level" data-raw="${esc(c.level || '')}">${c.level ? `<span class="tag a">${esc(c.level)}</span>` : '＋ 等级'}</span>
       <span class="ed" id="ce-type" data-raw="${esc(c.type || '')}">${c.type ? `<span class="tag">${esc(c.type)}</span>` : '＋ 类型'}</span>
       <span class="ed" id="ce-region" data-raw="${esc(c.region || '')}">${c.region ? `<span class="tag">${esc(c.region)}</span>` : '＋ 地区'}</span>
@@ -141,7 +145,7 @@ window.Cust = (function () {
       $('#c-fu').innerHTML = list.length ? list.map(f => `
         <div class="fu-bub">
           <div class="fu-head">
-            <b style="color:var(--accent2);font-size:12px">${esc(f.author || 'Bill')}</b>
+            <b style="color:var(--accent2);font-size:12px">${esc(f.author || OWNER())}</b>
             ${f.result ? `<span class="tag ${FU_C[f.result] || ''}">${esc(f.result)}</span>` : ''}
             <span class="muted" style="margin-left:auto;font-size:10.5px">${fmtDate(f.created_at, true)}</span>
           </div>
@@ -152,7 +156,7 @@ window.Cust = (function () {
     $('#fu-cust-add').onclick = async () => {
       const content = $('#fu-cust-in').value.trim();
       if (!content) return toast('先写一句内容');
-      const r = await post('/api/followups', { ref_type: 'customer', ref_id: id, content, result: $('#fu-cust-res').value, author: 'Bill' });
+      const r = await post('/api/followups', { ref_type: 'customer', ref_id: id, content, result: $('#fu-cust-res').value, author: OWNER() });
       if (!r.ok) return;
       $('#fu-cust-in').value = ''; $('#fu-cust-res').value = '';
       toast('已记录'); loadFu(); App.route();

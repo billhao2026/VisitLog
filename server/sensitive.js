@@ -147,7 +147,7 @@ function storage() {
   const model = (get("SELECT v FROM settings WHERE k='model'") || {}).v || 'small';
   const mSmall = dirSize(path.join(ROOT, 'models', 'small'));
   const mBase = dirSize(path.join(ROOT, 'models', 'base'))
-    + dirSize('/Users/bill/.workbuddy/binaries/whisper-models/base');
+    + dirSize(path.join(process.env.HOME || '', '.cache', 'whisper-models', 'base'));
   return {
     ok: true,
     audio: { totalMB: +(by('SELECT COALESCE(SUM(audio_size),0) v FROM calls WHERE audio_deleted=0') / 1048576).toFixed(1), deletable: candidates },

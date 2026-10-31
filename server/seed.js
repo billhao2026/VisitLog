@@ -52,7 +52,17 @@ const TERMS = [
   ['付宽', '付款'], ['受权', '授权'], ['寻价', '询价'],
 ];
 
+// 设置项初始化（幂等）：必须独立于分类字典，
+// 否则老库（分类已存在）走到 early return 时 settings 会一直是空的
+function seedSettings() {
+  run("INSERT OR IGNORE INTO settings(k,v) VALUES('owner',?)", process.env.VL_OWNER || '我');
+  run("INSERT OR IGNORE INTO settings(k,v) VALUES('accessCode','')");
+  run("INSERT OR IGNORE INTO settings(k,v) VALUES('model','small')");
+  run("INSERT OR IGNORE INTO settings(k,v) VALUES('keep_audio_days','30')");
+}
+
 function seed() {
+  seedSettings();
   const n = get('SELECT COUNT(*) c FROM categories').c;
   if (n > 0) {
     console.log('[seed] 字典已存在', n, '条，跳过');
@@ -69,13 +79,10 @@ function seed() {
   for (const [w, r] of TERMS) {
     try { run('INSERT INTO terms(wrong,right,hit_count,enabled,created_at) VALUES(?,?,?,?,?)', w, r, 0, 1, ts); } catch (e) {}
   }
-  run("INSERT OR IGNORE INTO settings(k,v) VALUES('owner','Bill')");
-  run("INSERT OR IGNORE INTO settings(k,v) VALUES('accessCode','')");
-  run("INSERT OR IGNORE INTO settings(k,v) VALUES('model','base')");
   console.log('[seed] 已写入分类', CATS.length, '条，术语', TERMS.length, '条');
 }
 
-module.exports = { seed };
+module.exports = { seed, seedSettings };
 
 if (require.main === module) {
   seed();

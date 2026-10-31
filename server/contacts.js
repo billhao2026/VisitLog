@@ -1,7 +1,7 @@
 // 拜访志 · 联系人提炼：从录音标题/转写稿解析 客户姓名 + 客户电话
-const { all, get, run, now, addLog } = require('./db.js');
+const { all, get, run, now, addLog, ownerName } = require('./db.js');
 
-const COMPANY_WORDS = /公司|科技|商贸|集团|有限|新兴|实业|数码|电子|办公|耗材|石化|油田|文化|股份|商行|批发|经销/;
+const COMPANY_WORDS = /公司|科技|商贸|集团|有限|新兴|实业|数码|电子|办公|文化|股份|商行|批发|经销/;
 
 function extractPhone(text) {
   const t = String(text || '').replace(/[—–\-_\s]/g, '');
@@ -18,10 +18,10 @@ function parseName(title, phone) {
   const phoneStart = phone ? base.indexOf(phone) : -1;
   // 候选人 = 汉字 2-6 字 token，且（有电话时）结束位置在电话之前
   const cands = segs.map((s, i) => {
-    const pre = s; // 该 token 自身（电话号码可能与姓名同 token，如 王永飞13910894977）
+    const pre = s; // 该 token 自身（电话号码可能与姓名同 token，如 张三13XXXXXXXXX）
     return { s: pre, i };
   }).filter(x => /[\u4e00-\u9fa5]{2,}/.test(x.s) && !COMPANY_WORDS.test(x.s));
-  // 若姓名与电话粘连在同一 token（王永飞13910894977），从 token 中把电话截掉
+  // 若姓名与电话粘连在同一 token（张三13XXXXXXXXX），从 token 中把电话截掉
   const cleaned = cands.map(c => {
     let s = c.s;
     if (phone && s.includes(phone)) s = s.replace(phone, '');
@@ -38,12 +38,12 @@ function parseName(title, phone) {
     }
   }
   let n = pick.s;
-  // 称呼归一：杨虎杨总 → 杨虎；李经理 → 李经理(2字)保留；王姐/张女士 → 原样保留
+  // 称呼归一：某某总 → 某某；某经理 → 某经理(2字)保留；某姐/某女士 → 原样保留
   const m = n.match(/^(.+?)(?:总|经理|姐|哥|老板|先生|女士)$/);
   if (m) {
     if (m[1].length >= 2) {
       n = m[1];
-      // 全名+尊称重叠（杨虎+杨总=杨虎杨总）：去尾字后若首尾同字（杨虎杨）再删尾
+      // 全名+尊称重叠（张三+张总=张三张总）：去尾字后若首尾同字再删尾
       if (n.length >= 3 && n[0] === n[n.length - 1]) n = n.slice(0, -1);
     }
   }
@@ -96,8 +96,8 @@ function migrateNotes() {
   const ts = now();
   for (const r of rows) {
     run(`INSERT INTO followups(ref_type,ref_id,content,result,due_date,closed,author,created_at,updated_at)
-         VALUES('customer',?,?,?,'',0,'Bill',?,?)`,
-      r.id, String(r.note).trim(), '', ts, ts);
+         VALUES('customer',?,?,?,'',0,?,?,?)`,
+      r.id, String(r.note).trim(), '', ownerName(), ts, ts);
     n++;
   }
   run("INSERT INTO settings(k,v) VALUES('note_migrated','1') ON CONFLICT(k) DO UPDATE SET v='1'");

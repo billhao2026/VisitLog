@@ -14,7 +14,18 @@ except Exception:
     pass
 
 _here = Path(__file__).resolve().parent.parent
-DEFAULT_MODEL = os.environ.get("VL_MODEL_DIR") or str(_here / "models" / "base")
+# 模型目录优先级：命令行参数 > 环境变量 VL_MODEL_DIR > 项目内 models/small（> base）
+def _default_model() -> str:
+    env = os.environ.get("VL_MODEL_DIR")
+    if env and Path(env).is_dir():
+        return env
+    for name in ("small", "base"):
+        p = _here / "models" / name
+        if p.is_dir():
+            return str(p)
+    return str(_here / "models" / "small")
+
+DEFAULT_MODEL = _default_model()
 
 AUDIO = Path(sys.argv[1])
 OUT = Path(sys.argv[2])
@@ -22,17 +33,19 @@ MODEL = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] else DEFAULT_MODEL
 if not os.path.isdir(MODEL):
     MODEL = DEFAULT_MODEL
 
-# 行业基础热词（硬编码，兜底）
+# 通用销售场景热词（硬编码，兜底）
+# 说明：这里只保留跨行业通用的商务词汇。
+#       你自己行业的品牌名、品类名、场景词，请通过「字典」页维护，
+#       转写时会从 terms 表动态注入（见 server/asr.js），无需改代码。
 BASE_HOTWORDS = (
-    "客户 拜访 需求 报价 报价单 合同 账期 付款 发票 对账 回款 询价 比价 "
-    "产品 型号 规格 参数 样品 试用 测试 交期 发货 物流 到货 现货 库存 "
-    "售后 维修 退货 投诉 竞品 预算 决策 采购 下单 订单 折扣 中标 招标 "
-    "方案 演示 进度 会议 回访 满意度 授权 代理 上架 上价 "
-    "耗材 硒鼓 碳粉 墨盒 粉盒 鼓架 芯片 兼容 原装 国产 "
-    "打印机 复印机 一体机 针式 喷墨 激光 彩色 黑白 "
-    "惠普 佳能 爱普生 兄弟 联想 得力 奔图 立思辰 理光 柯尼卡 美能达 夏普 京瓷 东芝 "
-    "政采 政府采购 京东 天猫 苏宁 平台 电商 采购人 商家 渠道 经销商 批发 零售 "
-    "老板 总监 经理 主任 工程师 财务 采购部"
+    "客户 拜访 沟通 需求 报价 报价单 合同 协议 条款 账期 付款 发票 开票 对账 回款 "
+    "询价 比价 议价 折扣 优惠 预算 采购 下单 订单 招标 中标 投标 入围 "
+    "产品 型号 规格 参数 样品 试用 测试 交期 发货 物流 到货 库存 现货 "
+    "方案 演示 报价单 进度 会议 回访 满意度 授权 代理 经销 "
+    "售后 服务 维修 退货 换货 保修 质保 投诉 响应 "
+    "竞品 对手 替换 供应商 服务商 采购人 负责人 对接人 "
+    "市场 行业 销售 业务 渠道 电商 平台 商家 批发 零售 "
+    "老板 总监 经理 主任 工程师 财务 采购部 技术部"
 )
 
 # 动态热词：由 server/asr.js 从 terms 表导出（新增术语自动生效，源头提升识别率）

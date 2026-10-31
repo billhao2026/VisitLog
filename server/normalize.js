@@ -1,5 +1,5 @@
 // 拜访志 · 客户名归一
-const { all, get, run, now, addLog, uuid } = require('./db.js');
+const { all, get, run, now, addLog, uuid, ownerName } = require('./db.js');
 
 // 去掉法人实体后缀，取核心字号
 const SUFFIX = /(股份有限公司|有限责任公司|有限公司|集团公司|分公司|公司|集团|经营部|商行|商行部|营业部|办事处|工作室|中心|厂|店)$/;
@@ -44,7 +44,7 @@ function resolveCustomer(name, opts = {}) {
   const id = uuid();
   run(`INSERT INTO customers(id,name,aliases,owner,status,visit_count,first_visit_at,last_visit_at,created_at,updated_at)
        VALUES(?,?,?,?, '活跃', 0, ?,?,?,?)`,
-    id, raw, JSON.stringify([]), opts.owner || 'Bill', opts.at || now(), opts.at || now(), now(), now());
+    id, raw, JSON.stringify([]), opts.owner || ownerName(), opts.at || now(), opts.at || now(), now(), now());
   addLog('customer_new', id, '自动建档：' + raw);
   return id;
 }

@@ -1,5 +1,5 @@
 // 拜访志 · 预警 / 敏感词库 / 跟进记录 / 设置 / 空间
-const { all, get, run, now, addLog, uuid } = require('./db.js');
+const { all, get, run, now, addLog, uuid, ownerName, resetOwnerCache } = require('./db.js');
 const sens = require('./sensitive.js');
 
 const FLAG_SQL = `SELECT f.*, cl.title AS call_title, cl.visited_at,
@@ -78,12 +78,14 @@ module.exports = {
     const rows = all('SELECT * FROM settings');
     const s = {};
     for (const r of rows) s[r.k] = r.v;
-    return { ok: true, settings: Object.assign({ model: 'small', keep_audio_days: '30', owner: 'Bill' }, s) };
+    return { ok: true, settings: Object.assign({ model: 'small', keep_audio_days: '30', owner: ownerName() }, s) };
   },
 
   'POST /api/settings': async (req, res, b) => {
     if (!b.k) return { ok: false, err: 'missing key' };
     run('INSERT INTO settings(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v', b.k, String(b.v ?? ''));
+    // owner 改动后必须让 ownerName() 的缓存失效，否则新名字不生效
+    if (b.k === 'owner') resetOwnerCache();
     addLog('setting', b.k, String(b.v ?? ''));
     return { ok: true };
   },

@@ -16,13 +16,13 @@ function bySuffix(text) {
   const re = new RegExp('([\\u4e00-\\u9fa5A-Za-z0-9（）()·&]{2,20}' + SUFFIX.source + ')', 'g');
   const hits = text.match(re) || [];
   if (!hits.length) return null;
-  // 排除纯行业词误命中（如"耗材类产品"）
-  const bad = /^(?:产品|耗材|服务|平台|项目)$/;
+  // 排除纯泛称误命中（如"产品类""服务类"）
+  const bad = /^(?:产品|服务|平台|项目|公司|集团)$/;
   const cand = hits.map(s => s.trim()).filter(s => !bad.test(s));
   return cand[0] || null;
 }
 
-// 3) 已知客户字号/别名匹配：待办里提到老客户（无后缀写法，如"青岛锦鑫天恒"）
+// 3) 已知客户字号/别名匹配：待办里提到老客户（无后缀写法，如"某某公司"）
 function byKnownCustomer(text, knownList) {
   for (const k of knownList || []) {
     if (!k || !k.key) continue;
@@ -41,7 +41,7 @@ function byPerson(text) {
 }
 
 // 抽取主入口：返回 { company, person }（可为 null）
-// knownList: [{ key: '青岛锦鑫天恒', name: '青岛锦鑫天恒--周浩' }]，由调用方从客户库预生成
+// knownList: [{ key: '某客户公司', name: '某客户公司--某联系人' }]，由调用方从客户库预生成
 function extractEntities(text, knownList) {
   const t = String(text || '');
   if (!t.trim()) return { company: null, person: null };

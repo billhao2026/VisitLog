@@ -3,7 +3,7 @@
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 
-const ROOT = path.join(__dirname, '..', '..');   // D:\WorkBuddy\客户拜访志
+const ROOT = path.join(__dirname, '..', '..');
 const db = new DatabaseSync(path.join(ROOT, 'data', 'calls.db'));
 
 const pad = n => String(n).padStart(2, '0');

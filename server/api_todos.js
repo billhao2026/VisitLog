@@ -1,5 +1,5 @@
 // 拜访志 · 待办 / 重点事项
-const { all, get, run, now, today, addLog, uuid } = require('./db.js');
+const { all, get, run, now, today, addLog, uuid, ownerName } = require('./db.js');
 const nm = require('./normalize.js');
 const { extractEntities } = require('./extract_entity.js');
 
@@ -17,7 +17,7 @@ function refreshOverdue() {
   run("UPDATE todos SET overdue=0 WHERE status='open' AND (due_date IS NULL OR due_date >= ?)", t);
 }
 
-// 已知客户字号表（供实体抽取兜底匹配，如"青岛锦鑫天恒"这类无后缀写法）
+// 已知客户字号表（供实体抽取兜底匹配，如"某某公司"这类无后缀写法）
 function knownCustomerKeys() {
   const out = [];
   for (const c of all('SELECT id,name,aliases FROM customers')) {
@@ -40,7 +40,7 @@ function linkManualTodo(todoId, content, customerId) {
     const c = get('SELECT name FROM customers WHERE id=?', r.customerId);
     r.customerName = c ? c.name : '';
   } else if (company) {
-    r.customerId = nm.resolveCustomer(company, { owner: 'Bill' });
+    r.customerId = nm.resolveCustomer(company, { owner: ownerName() });
     r.customerName = company;
     r.created = !get('SELECT 1 FROM calls WHERE customer_id=? LIMIT 1', r.customerId); // 无通话 → 本次新建
     addLog('todo_link', todoId, `手工待办关联客户：${company}`);
@@ -91,7 +91,7 @@ module.exports = {
     run(`INSERT INTO todos(id,call_id,customer_id,content,assignee,due_date,priority,status,source,created_at,updated_at)
          VALUES(?,?,?,?,?,?,?,'open','manual',?,?)`,
       id, b.call_id || null, b.customer_id || null, b.content,
-      b.assignee || 'Bill', b.due_date || null, b.priority || '中', now(), now());
+      b.assignee || ownerName(), b.due_date || null, b.priority || '中', now(), now());
     addLog('todo_add', id, b.content.slice(0, 60));
     // 手动添加（无通话上下文）→ 自动建档关联 + 生成重点事项
     let link = null;
@@ -103,7 +103,7 @@ module.exports = {
     const id = req.params.id;
     const f = b.field, v = b.value;
     if (f === 'done') {
-      run("UPDATE todos SET status=?, done_at=?, done_by=?, overdue=0, updated_at=? WHERE id=?", v ? 'done' : 'open', v ? now() : null, v ? 'Bill' : '', now(), id);
+      run("UPDATE todos SET status=?, done_at=?, done_by=?, overdue=0, updated_at=? WHERE id=?", v ? 'done' : 'open', v ? now() : null, v ? ownerName() : '', now(), id);
       addLog('todo_' + (v ? 'done' : 'reopen'), id, '');
       return { ok: true };
     }
@@ -113,7 +113,7 @@ module.exports = {
       if (f === 'customer_name') {
         const name = String(v || '').trim();
         if (!name) return { ok: false, err: '名称为空' };
-        const cid = nm.resolveCustomer(name, { owner: 'Bill' });
+        const cid = nm.resolveCustomer(name, { owner: ownerName() });
         run('UPDATE todos SET customer_id=?, updated_at=? WHERE id=?', cid, now(), id);
         const created = !get('SELECT 1 FROM calls WHERE customer_id=? LIMIT 1', cid);
         addLog('todo_bind', id, `绑定客户：${name}`);

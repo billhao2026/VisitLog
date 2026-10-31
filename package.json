@@ -1,14 +1,15 @@
 {
   "name": "visitlog",
   "version": "1.0.0",
-  "private": true,
-  "description": "拜访志 VisitLog — 客户通话记录平台：上传录音 → 自动转写 → AI 拆解归类 → 待办与重点沉淀，改判结果反哺字典",
+  "description": "拜访志 VisitLog — 客户通话记录平台：上传录音 → 本地转写 → AI 拆解归类 → 待办与重点沉淀，改判结果反哺字典",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
     "start:env": "node --env-file=.env server/server.js",
     "weekly": "node scripts/weekly_report/run.js",
-    "download-model": "python scripts/download_small.py"
+    "download-model": "python3 scripts/download_small.py",
+    "demo": "node scripts/demo_data.js",
+    "test": "node --test --test-concurrency=1 \"test/*.test.js\""
   },
   "engines": {
     "node": ">=22.5.0"
@@ -25,7 +26,10 @@
     "asr",
     "sales",
     "visit-log",
-    "sqlite"
+    "sqlite",
+    "call-record",
+    "speech-to-text",
+    "local-first"
   ],
   "license": "MIT"
 }

@@ -1,0 +1,28 @@
+# 统一换行，避免跨平台 diff 噪音
+* text=auto eol=lf
+
+# 二进制文件
+*.db binary
+*.sqlite3 binary
+*.wav binary
+*.mp3 binary
+*.m4a binary
+*.bin binary
+
+# 模型文件（如果有人误提交）
+*.onnx binary
+*.pt binary
+
+# 明确标记为文本
+*.js text
+*.py text
+*.md text
+*.json text
+*.yml text
+*.yaml text
+*.html text
+*.css text
+*.sql text
+*.txt text
+*.bat text eol=crlf
+*.command text eol=lf

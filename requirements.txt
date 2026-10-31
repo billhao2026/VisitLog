@@ -1,0 +1,12 @@
+# 语音转写依赖（仅转写功能需要；不装也能用系统其余部分）
+#
+# 安装：
+#   python3 -m venv .venv
+#   source .venv/bin/activate        # Windows: .venv\Scripts\activate
+#   pip install -r requirements.txt
+#
+# 或用项目脚本一键下载模型（首次运行需要，约 500MB）：
+#   npm run download-model
+
+faster-whisper>=1.0.0
+huggingface_hub>=0.20.0

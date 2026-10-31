@@ -74,7 +74,7 @@ function renderHead(c, calls, todos, hls, fus) {
   ].filter(Boolean).join('');
   const kv = [
     ['联系人', c.contact_name], ['电话', c.contact_phone], ['对接业务员', c.sales],
-    ['跟进人', c.owner || 'Bill'], ['首次拜访', fmtD(c.first_visit_at)], ['累计拜访', (c.visit_count || 0) + ' 次'],
+    ['跟进人', c.owner || opts.owner || ''], ['首次拜访', fmtD(c.first_visit_at)], ['累计拜访', (c.visit_count || 0) + ' 次'],
   ].filter(x => x[1]).map(x => `<span class="tag">${esc(x[0])}：${esc(x[1])}</span>`).join('');
   return `
 <header class="head">
@@ -171,7 +171,7 @@ function buildCustomerHTML(c, calls, todos, hls, fus, opts = {}) {
     renderHls(hls),
     renderFus(fus),
     `<div class="note">📌 <b>这是 ${esc(genStr)} 生成的离线快照</b>——内容截至此刻，后续更新不会自动同步。<br>
-    你可以直接在微信/邮件里回复反馈（说清楚是哪条待办/要点即可），Bill 收到后会在系统里操作跟进。</div>`,
+    你可以直接在微信/邮件里回复反馈（说清楚是哪条待办/要点即可），负责人收到后会在系统里操作跟进。</div>`,
   ].filter(Boolean).join('\n');
   return `<!doctype html>
 <html lang="zh-CN">

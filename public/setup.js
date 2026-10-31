@@ -49,7 +49,19 @@ window.Setup = (function () {
         </div>
       </div>
 
-      <h3 style="font-size:13px;margin:0 0 10px">空间占用</h3>
+      <h3 style="font-size:13px;margin:0 0 10px">使用者</h3>
+      <div class="card" style="background:var(--paper2)">
+        <div class="muted" style="font-size:12px;margin-bottom:8px">
+          跟进人 / 记录人的默认署名。新建客户与待办时会自动填这个名字。
+        </div>
+        <div class="rowflex" style="gap:8px;align-items:flex-end">
+          <div style="flex:0 0 220px"><label class="muted" style="font-size:11px">你的名字</label>
+            <input id="set-owner" type="text" placeholder="如：张三" value="${esc(set.owner || '')}" style="width:100%"></div>
+          <button class="btn pri sm" id="owner-save">保存</button>
+        </div>
+      </div>
+
+      <h3 style="font-size:13px;margin:20px 0 10px">空间占用</h3>
       <div class="card" style="background:var(--paper2)" id="set-space"></div>
 
       <h3 style="font-size:13px;margin:20px 0 10px">🔐 局域网访问口令（防同事攻击本机）</h3>
@@ -126,6 +138,14 @@ window.Setup = (function () {
       toast('保留策略已保存');
     };
     $('#reload-space').onclick = async () => refresh(await get('/api/storage'));
+    // 使用者名：保存后立即生效（新建客户/待办会填这个）
+    $('#owner-save').onclick = async () => {
+      const v = $('#set-owner').value.trim();
+      await post('/api/settings', { k: 'owner', v });
+      toast(v ? '使用者已设置为「' + v + '」' : '已清空使用者名');
+      App.closeDrawer();
+      App.route();
+    };
     $('#clean-now').onclick = async () => {
       if (!window.confirm('将删除所有「已转写完成且超过保留期」的原始录音文件，确定？')) return;
       const r = await post('/api/cleanup', {});

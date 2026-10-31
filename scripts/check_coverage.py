@@ -1,8 +1,8 @@
-import sqlite3, re, sys, io
+import sqlite3, re, sys, io, os
 sys.stdout.reconfigure(encoding='utf-8')
 
-ROOT = r"D:\WorkBuddy\客户拜访志"
-db = sqlite3.connect(ROOT + r"\data\calls.db")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+db = sqlite3.connect(os.path.join(ROOT, "data", "calls.db"))
 rows = db.execute("SELECT id, title, duration_sec, transcript FROM calls WHERE transcript IS NOT NULL").fetchall()
 
 pat = re.compile(r"\[(\d{2}):(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2}):(\d{2})\]\s*(.*)")

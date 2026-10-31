@@ -1,5 +1,5 @@
 // 拜访志 · 反哺闭环：人工改动 → 证据 → 规则 → 字典
-const { all, get, run, now, addLog, uuid } = require('./db.js');
+const { all, get, run, now, addLog, uuid, ownerName } = require('./db.js');
 
 // 按名称或 id 找分类；名称支持 "1.2 xxx" 或 "xxx"
 function findCategory(key) {
@@ -49,7 +49,7 @@ function saveTodos(callId, customerId, arr, source = 'ai') {
     run(`INSERT INTO todos(id,call_id,customer_id,content,assignee,due_date,priority,status,source,note,created_at,updated_at)
          VALUES(?,?,?,?,?,?,?, 'open', ?,?,?,?)`,
       uuid(), callId, customerId || null, String(t.content || '').trim(),
-      t.assignee || 'Bill', due, t.priority || '中', source, t.note || '', now(), now());
+      t.assignee || ownerName(), due, t.priority || '中', source, t.note || '', now(), now());
   }
 }
 
@@ -61,12 +61,12 @@ function addFollowup(o) {
   const r = run(`INSERT INTO followups(ref_type,ref_id,content,result,due_date,closed,author,created_at,updated_at)
                  VALUES(?,?,?,?,?,?,?,?,?)`,
     ref_type, ref_id, text || '（闭环）', result || '', due_date || null,
-    closed ? 1 : 0, o.author || 'Bill', ts, ts);
+    closed ? 1 : 0, o.author || ownerName(), ts, ts);
   if (ref_type === 'todo') {
     if (due_date) run('UPDATE todos SET due_date=?, overdue=0, updated_at=? WHERE id=?', due_date, ts, ref_id);
     if (closed) run("UPDATE todos SET status='done', done_at=?, overdue=0, updated_at=? WHERE id=?", ts, ts, ref_id);
   }
-  addLog('followup', ref_id, `${ref_type}@${o.author || 'Bill'}: ${(text || '闭环').slice(0, 50)}`);
+  addLog('followup', ref_id, `${ref_type}@${o.author || ownerName()}: ${(text || '闭环').slice(0, 50)}`);
   return r.lastInsertRowid;
 }
 
@@ -74,8 +74,8 @@ function addFollowup(o) {
 function recordCorrection(callId, field, oldValue, newValue, why = '') {
   if (String(oldValue ?? '') === String(newValue ?? '')) return null;
   const r = run(`INSERT INTO corrections(call_id,field,old_value,new_value,evidence,why,created_at,created_by)
-                 VALUES(?,?,?,?,?,?,?, 'Bill')`,
-    callId, field, String(oldValue ?? ''), String(newValue ?? ''), '', why, now());
+                 VALUES(?,?,?,?,?,?,?,?)`,
+    callId, field, String(oldValue ?? ''), String(newValue ?? ''), '', why, now(), ownerName());
   if (field === 'category' && newValue) {
     const cat = findCategory(newValue);
     if (cat) run('UPDATE categories SET fixed_count=fixed_count+1, updated_at=? WHERE id=?', now(), cat.id);

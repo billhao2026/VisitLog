@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS customers(
   region TEXT,
   level TEXT,
   tags TEXT,
-  owner TEXT DEFAULT 'Bill',
+  owner TEXT DEFAULT '',
   sales TEXT DEFAULT '',           -- 对接业务员
   contact_name TEXT DEFAULT '',    -- 客户姓名（联系人，从录音提炼可改）
   contact_phone TEXT DEFAULT '',   -- 客户电话
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS todos(
   call_id TEXT,
   customer_id TEXT,
   content TEXT NOT NULL,
-  assignee TEXT DEFAULT 'Bill',
+  assignee TEXT DEFAULT '',
   due_date TEXT,
   priority TEXT DEFAULT '中',
   status TEXT DEFAULT 'open',
@@ -194,7 +194,7 @@ CREATE TABLE IF NOT EXISTS followups(
   result TEXT DEFAULT '',          -- 无进展 | 推进中 | 有突破 | 已闭环
   due_date TEXT,                   -- 填写后同步改期（仅 todo 生效）
   closed INTEGER DEFAULT 0,        -- 1 = 同步闭环（仅 todo 生效）
-  author TEXT DEFAULT 'Bill',      -- 记录人（业务负责人/跟进人/外部接收者）
+  author TEXT DEFAULT '',      -- 记录人（业务负责人/跟进人/外部接收者）
   created_at TEXT,
   updated_at TEXT
 );

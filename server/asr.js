@@ -5,9 +5,20 @@ const { spawn } = require('child_process');
 const { ROOT, db, get, run, all, now, addLog } = require('./db.js');
 const sens = require('./sensitive.js');
 
-// macOS 适配：可用环境变量 VL_PY 覆盖；默认指向本机专属 venv
-const PY = process.env.VL_PY
-  || '/Users/bill/.workbuddy/binaries/python/envs/visitlog-asr/bin/python3';
+// Python 解释器查找顺序：环境变量 VL_PY → 系统 python3/python → 项目内 .venv
+function findPython() {
+  if (process.env.VL_PY) return process.env.VL_PY;
+  const venv = path.join(ROOT, '.venv', 'bin', 'python3');
+  if (fs.existsSync(venv)) return venv;
+  const winVenv = path.join(ROOT, '.venv', 'Scripts', 'python.exe');
+  if (fs.existsSync(winVenv)) return winVenv;
+  // 常见系统安装位置（macOS / Linux）
+  for (const c of ['/opt/homebrew/bin/python3', '/usr/local/bin/python3', '/usr/bin/python3']) {
+    if (fs.existsSync(c)) return c;
+  }
+  return 'python3';   // 交给 PATH 解析
+}
+const PY = findPython();
 const SCRIPT = path.join(ROOT, 'scripts', 'transcribe.py');
 const TMP = path.join(ROOT, 'data', 'asr');
 fs.mkdirSync(TMP, { recursive: true });
@@ -20,7 +31,7 @@ function localModel(name) {
   return fs.existsSync(p) ? p : '';
 }
 
-// 模型查找顺序：项目内 models/ → 环境变量 VL_MODEL → 全局 whisper-models → 自动降级 small/base
+// 模型查找顺序：项目内 models/ → 环境变量 VL_MODEL_DIR → 全局 whisper-models → 自动降级 small/base
 function modelPath() {
   const s = get("SELECT v FROM settings WHERE k='model'");
   const want = s ? s.v : 'small';
@@ -30,10 +41,18 @@ function modelPath() {
   }
   const envDir = process.env.VL_MODEL_DIR;
   if (envDir && fs.existsSync(envDir)) return envDir;
-  const globalBase = '/Users/bill/.workbuddy/binaries/whisper-models/base';
-  if (fs.existsSync(globalBase)) return globalBase;
-  const gSmall = '/Users/bill/.workbuddy/binaries/whisper-models/small';
-  if (fs.existsSync(gSmall)) return gSmall;
+  // 全局模型目录（可用环境变量覆盖，也兼容 HuggingFace 常见缓存路径）
+  const globalDirs = [
+    process.env.VL_WHISPER_MODELS_DIR,
+    path.join(process.env.HOME || '', '.cache', 'whisper-models'),
+    path.join(process.env.HOME || '', '.workbuddy', 'binaries', 'whisper-models'),
+  ].filter(Boolean);
+  for (const dir of globalDirs) {
+    for (const name of ['small', 'base']) {
+      const p = path.join(dir, name);
+      if (fs.existsSync(p)) return p;
+    }
+  }
   return localModel('small') || localModel('base') || '';
 }
 
@@ -84,7 +103,18 @@ function doTranscribe(id) {
     const outJson = path.join(TMP, id + '.json');
     run("UPDATE calls SET transcribe_status='transcribing', transcribe_err=NULL, updated_at=? WHERE id=?", now(), id);
 
-    const args = [SCRIPT, audio, outJson, modelPath()];
+    // 动态热词：把 terms 表里的行业术语导出给转写脚本（新增术语自动提升识别率）
+    const hotwordFile = path.join(TMP, 'hotwords.txt');
+    try {
+      const words = all('SELECT "right" AS rt FROM terms WHERE enabled=1 AND "right" IS NOT NULL AND "right" <> ""')
+        .map(r => String(r.rt).trim())
+        .filter(w => w && !/\s/.test(w));
+      fs.writeFileSync(hotwordFile, words.join(' '), 'utf8');
+    } catch (e) {
+      console.error('[asr] 导出热词失败：' + e.message);
+    }
+
+    const args = [SCRIPT, audio, outJson, modelPath(), hotwordFile];
     const env = {
       ...process.env,
       HF_ENDPOINT: 'https://hf-mirror.com',
