@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>客户跟进 · 协作页</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/share.css">
+</head>
+<body>
+<div id="wrap">
+  <header class="s-head">
+    <div class="brand"><span class="mark">访</span>
+      <div><h1 id="c-name">客户跟进页</h1>
+        <p id="c-meta" class="muted"></p></div>
+    </div>
+    <div class="s-me">
+      <label class="muted">我是</label>
+      <input id="me" placeholder="填你的姓名" maxlength="20">
+      <div class="hint muted" id="me-hint">你的回复会自动署名</div>
+    </div>
+  </header>
+
+  <div id="calls-card" class="card" style="display:none">
+    <h3>拜访记录<span class="sub" id="c-call-n"></span></h3>
+    <div id="calls"></div>
+  </div>
+
+  <div class="cols">
+    <div class="col">
+      <div class="card">
+        <h3>待办事项 <span class="sub" id="c-todo-n"></span></h3>
+        <div id="todos"></div>
+        <div class="empty" id="todo-empty" style="display:none">✅ 没有未完成待办</div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>沉淀要点 <span class="sub" id="c-hl-n"></span></h3>
+        <div id="hls"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3>客户跟进记录 <span class="sub" id="c-fu-n"></span></h3>
+        <div id="fu-list"></div>
+        <div class="muted" style="font-size:12px;margin:10px 0 6px">✍ 记一条跟进（联系进展、客户答复…）</div>
+        <textarea id="fu-in" rows="2" placeholder="这次联系了什么？客户怎么答复？"></textarea>
+        <div class="rowflex" style="margin-top:8px;align-items:center">
+          <div id="fu-res" class="chips"></div>
+          <span class="grow"></span>
+          <button class="btn pri sm" id="fu-save">保存跟进</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="muted" style="font-size:11px;margin-top:18px;text-align:center">
+    由拜访志生成 · 内容与操作实时同步给跟进负责人 · 请勿外传本链接
+  </footer>
+</div>
+<div class="err" id="err" hidden></div>
+<script src="/share.js"></script>
+</body>
+</html>

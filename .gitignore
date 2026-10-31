@@ -1,0 +1,32 @@
+# ── 依赖 ──
+node_modules/
+
+# ── 客户隐私与录音：绝不提交 ──
+audio/*
+!audio/.gitkeep
+data/*
+!data/.gitkeep
+
+# ── 语音模型（464MB，用 npm run download-model 拉取）──
+models/
+
+# ── 私有产物与项目记忆 ──
+.workbuddy/
+报告/
+截图/
+
+# ── 环境变量与凭据 ──
+.env
+.env.local
+*.key
+*.pem
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+
+# ── 系统 ──
+.DS_Store
+Thumbs.db
+*.log
