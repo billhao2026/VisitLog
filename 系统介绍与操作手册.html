@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>拜访志 VisitLog · 系统介绍与操作手册</title>
+<style>
+:root{--paper:#FBF9F5;--paper2:#F5F1E9;--ink:#1A1815;--ink2:#4A443C;--ink3:#8A8175;--ink4:#B4AB9C;--rule:#E4DCCC;--rule2:#D6CBB6;--accent:#C2410C;--accent2:#9A3412;--soft:#FCEFE4;--green:#4D7C5F;--gsoft:#EDF3EE;--amber:#B45309;--asoft:#FBF1E1;--red:#9B2C2C;--rsoft:#F9EBEA;--blue:#2F5D7C;--bsoft:#EBF1F5;--serif:Georgia,"Songti SC","Noto Serif SC",serif;--sans:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.75;-webkit-font-smoothing:antialiased;background-image:radial-gradient(circle at 1px 1px,rgba(180,171,156,.16) 1px,transparent 0);background-size:22px 22px}
+.wrap{max-width:920px;margin:0 auto;padding:34px 22px 70px}
+.hero{border-bottom:2px solid var(--ink);padding-bottom:22px;margin-bottom:26px}
+.hero .mark{width:54px;height:54px;display:grid;place-items:center;background:var(--accent);color:#fff;font-family:var(--serif);font-size:28px;border-radius:4px;margin-bottom:16px}
+.hero h1{font-family:var(--serif);font-size:34px;margin:0 0 6px;line-height:1.2}
+.hero .sub{font-size:15.5px;color:var(--ink2);margin:0 0 12px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:6px}
+.tag{border:1px solid var(--rule2);background:var(--paper2);border-radius:100px;padding:1px 11px;font-size:11.5px;color:var(--ink2);white-space:nowrap}
+.tag.g{background:var(--gsoft);border-color:var(--green);color:var(--green)}
+.tag.r{background:var(--rsoft);border-color:var(--red);color:var(--red)}
+.tag.a{background:var(--asoft);border-color:var(--amber);color:var(--amber)}
+.tag.b{background:var(--bsoft);border-color:var(--blue);color:var(--blue)}
+.tag.hot{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+h2{font-family:var(--serif);font-size:23px;margin:40px 0 14px;padding-left:12px;border-left:4px solid var(--accent);line-height:1.3}
+h2 .no{color:var(--accent);margin-right:8px;font-size:15px;letter-spacing:1px;vertical-align:middle}
+h3{font-family:var(--serif);font-size:17px;margin:26px 0 10px;color:var(--ink)}
+h3 .em{margin-right:6px}
+p{margin:0 0 12px;color:var(--ink2)}
+p b,li b{color:var(--ink)}
+.lead{font-size:15.5px;color:var(--ink);border-left:3px solid var(--rule2);padding-left:14px;margin:16px 0}
+ul,ol{margin:0 0 14px;padding-left:22px;color:var(--ink2)}
+li{margin-bottom:6px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:16px 0}
+.card{border:1px solid var(--rule);border-radius:6px;background:rgba(255,255,255,.55);padding:16px 18px}
+.card h4{font-family:var(--serif);font-size:15.5px;margin:0 0 8px;color:var(--ink)}
+.card p{font-size:13px;margin:0 0 6px}
+.card .klist{margin:8px 0 0;padding-left:18px;font-size:13px}
+.hl-card{border-left:3px solid var(--accent)}
+.hl-card.g{border-left-color:var(--green)}
+.hl-card.b{border-left-color:var(--blue)}
+.hl-card.r{border-left-color:var(--red)}
+.note{border:1px dashed var(--rule2);background:var(--asoft);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--ink2);margin:16px 0;line-height:1.8}
+.note b{color:var(--accent2)}
+.tip{border:1px dashed var(--rule2);background:var(--gsoft);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--ink2);margin:16px 0;line-height:1.8}
+.tip b{color:var(--green)}
+.tw{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:12.5px;background:rgba(255,255,255,.5)}
+th{font-family:var(--serif);font-weight:600;text-align:left;background:var(--paper2);border-bottom:2px solid var(--rule2);padding:8px 12px;white-space:nowrap}
+td{border-bottom:1px solid var(--rule);padding:8px 12px;vertical-align:top;color:var(--ink2)}
+td.yes{color:var(--green);font-weight:600;white-space:nowrap}
+td.no{color:var(--ink4);white-space:nowrap}
+td.me{background:var(--soft);color:var(--ink)}
+td.me b{color:var(--accent2)}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:16px 0;font-size:12.5px}
+.flow .fstep{border:1px solid var(--rule2);background:var(--paper2);border-radius:6px;padding:5px 12px;color:var(--ink2)}
+.flow .fstep.hot{border-color:var(--accent);background:var(--soft);color:var(--accent2);font-weight:600}
+.flow .farr{color:var(--ink4)}
+.step{display:flex;gap:14px;margin:18px 0}
+.step .sn{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-family:var(--serif);font-size:15px}
+.step .sc{min-width:0}
+.step .sc h4{font-family:var(--serif);font-size:15px;margin:2px 0 6px}
+.step .sc p{font-size:13px;margin:0 0 6px}
+.step .sc .ops{font-size:12px;color:var(--ink3)}
+kbd{border:1px solid var(--rule2);border-bottom-width:2px;border-radius:4px;background:#fff;padding:0 6px;font-size:12px;font-family:var(--sans);color:var(--ink2)}
+code{background:var(--paper2);border:1px solid var(--rule);border-radius:4px;padding:1px 6px;font-size:12px;color:var(--accent2);font-family:Consolas,"Courier New",monospace}
+footer{margin-top:44px;text-align:center;font-size:11px;color:var(--ink4);border-top:1px solid var(--rule);padding-top:14px;line-height:2}
+.toc{border:1px solid var(--rule);border-radius:6px;background:rgba(255,255,255,.55);padding:16px 20px;margin:0 0 10px}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+.toc a{color:var(--ink2)}
+.toc .t{font-family:var(--serif);font-size:14px;color:var(--ink);margin-bottom:8px}
+.toc ol{margin:0;padding-left:20px;font-size:13px;columns:2;column-gap:28px}
+@media(max-width:640px){.toc ol{columns:1}.hero h1{font-size:26px}}
+@media print{body{background:#fff;background-image:none}.card,.tw table{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="mark">访</div>
+  <h1>拜访志 VisitLog</h1>
+  <p class="sub">一套面向「已合作客户长期经营」的通话沉淀与待办闭环系统<br>把每一通客户电话，自动变成可跟进、可预警、可复盘的行动资产</p>
+  <div class="meta">
+    <span class="tag hot">录音转写 · AI 分析</span>
+    <span class="tag g">待办闭环</span>
+    <span class="tag r">敏感预警</span>
+    <span class="tag b">字典反哺</span>
+    <span class="tag">客户档案</span>
+    <span class="tag">离线分享</span>
+    <span class="tag">私有部署 · 纯本地</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="t">目 录</div>
+  <ol>
+    <li><a href="#c1">系统定位：为什么做这套系统</a></li>
+    <li><a href="#c2">核心功能全景</a></li>
+    <li><a href="#c3">操作手册（含日常五分钟工作流）</a></li>
+    <li><a href="#c4">对比分析：对比大模型与 CRM 的独特优势</a></li>
+    <li><a href="#c5">未来规划：开源与通用价值</a></li>
+  </ol>
+</nav>
+
+<h2 id="c1"><span class="no">第 01 章</span>系统定位：为什么做这套系统</h2>
+
+<p class="lead">客户已经是合作客户，<b>经营的痛点不在「找客户」，而在「守住并深化关系」</b>——每次通话里的承诺要兑现、暴露的问题要处置、潜在的机会要抓住。拜访志就是为这个场景而生的一套轻量私有系统。</p>
+
+<h3><span class="em">📌</span>我们试过现成工具，但都不对口</h3>
+
+<div class="grid2">
+  <div class="card">
+    <h4>🤖 公司大模型（客户画像系统）——会「听」，不会「做」</h4>
+    <p>公司大模型擅长通过录音分析做内容汇总与叠加、记录采购特征、生成客户画像，是强大的<b>分析大脑</b>。但它不是 CRM，分析完就结束了：</p>
+    <ul class="klist">
+      <li>没有待办事项——提炼出的行动建议落不了地</li>
+      <li>没有跟进闭环——谁在推进、推进到哪一步，无从知晓</li>
+      <li>没有预警机制——敏感问题沉在录音库里没人捞</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>📋 传统 CRM——会「记档案」，不管「经营关系」</h4>
+    <p>传统 CRM 以客户档案与商机漏斗为核心，服务的是<b>成交前的销售过程</b>。而我们的客户均为已合作客户，档案早就有了，真正要管的是成交之后：</p>
+    <ul class="klist">
+      <li>长期合作关系的维护与深化</li>
+      <li>复购的提升、不同产品线与项目上的合作拓展（授权、试用样品、解决方案）</li>
+      <li>对接、沟通、交流问题的及时解决</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card hl-card">
+  <h4>💡 拜访志的定位：补上「从分析到行动」的最后一环</h4>
+  <p>拜访志不做客户画像（那是公司大模型的专长），也不做客户档案库（客户已建档）；它专注三件事：</p>
+  <p><b>① 及时跟进客户</b> —— 通话中的每一条承诺、每一个问题，自动变成待办，逾期即警；<br>
+  <b>② 提炼问题并妥善处置</b> —— AI 从通话中提炼问题分类、沉淀要点，敏感问题（故障/投诉/账期/回款）即时预警；<br>
+  <b>③ 建立与客户的反馈机制</b> —— 跟进留痕、进展可视、成果反哺，形成「通话 → 行动 → 反馈 → 沉淀」的完整闭环。</p>
+</div>
+
+<h2 id="c2"><span class="no">第 02 章</span>核心功能全景</h2>
+
+<p>系统围绕「<b>通话 → 提炼 → 行动 → 反馈</b>」主线设计，六大功能模块环环相扣。以下加粗项为用户重点关注的两大核心。</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:130px">模块</th><th>解决什么问题</th><th style="width:260px">关键能力</th></tr></thead>
+<tbody>
+<tr><td><b>⭐ 待办事项</b></td><td class="me"><b>核心模块</b>：通话中产生的承诺与问题不能停留在录音里，必须变成有人盯、有期限、有闭环的行动项</td><td>AI 自动生成待办；超期/今日到期/高优先多维筛选；跟进留痕（写进展替代只改日期）；一键完成/改期/删除</td></tr>
+<tr><td><b>⭐ 重要事项预警</b></td><td class="me"><b>核心模块</b>：故障、投诉、账期、回款等敏感信号埋在几十分钟录音里，人工根本听不过来</td><td>敏感词预警横幅 + 预警池管理页；逐条处理留痕；处理完毕自动闭环</td></tr>
+<tr><td>录音转写与分析</td><td>通话内容结构化，从「听过就忘」变成「字字可查」</td><td>本地 faster-whisper 转写；AI 按业务摘要/分类/要点/待办四层提炼；质量分与情绪标注</td></tr>
+<tr><td>沉淀要点（重点事项）</td><td>关键信息（机会/风险/决策/结论/事实）散落在各通话，缺乏跨客户视图</td><td>九类要点分类；📌置顶；重要度分级；处理/归档状态管理</td></tr>
+<tr><td>客户档案</td><td>每个客户的拜访史、待办、要点、跟进需要一处聚合</td><td>客户视图聚合四类信息；最近通话置顶；业务员/跟进人维度；离线分享 HTML 导出</td></tr>
+<tr><td>问题字典</td><td>同一类问题反复出现，归类靠经验、纠错靠人肉</td><td>分类体系+判定标准；自动归类规则；术语纠错全库同步；人工纠正反哺规则</td></tr>
+</tbody></table></div>
+
+<h3><span class="em">🎯</span>两大核心模块详解</h3>
+
+<div class="card hl-card">
+  <h4>⭐ 待办事项——让每个承诺都有下文</h4>
+  <p>待办不只是清单，而是一套<b>承诺管理机制</b>：</p>
+  <ul>
+    <li><b>自动生成</b>：AI 分析通话时自动提取行动项（如「9/12 前反馈工厂排查结论」），带期限与优先级，避免口头承诺无记录</li>
+    <li><b>多维筛选</b>：全部未完成 / 超期 / 今天到期 / 本周内 / 高优先 / 已完成，概览页数字块点击直达对应筛选</li>
+    <li><b>跟进留痕</b>：每条待办可记跟进（推进中/有突破/已闭环），写下「做到哪一步、还有什么堵点」，替代只改日期的形式主义</li>
+    <li><b>超期即警</b>：过期待办自动标红，概览页「已超期」数字块红色高亮，一眼看到失约的承诺</li>
+  </ul>
+</div>
+
+<div class="card hl-card r">
+  <h4>⭐ 重要事项预警——敏感问题绝不沉底</h4>
+  <p>系统对通话内容做敏感信号扫描，命中即进入预警池：</p>
+  <ul>
+    <li><b>预警范围</b>：故障、投诉、账期、回款等敏感关键词</li>
+    <li><b>首页横幅</b>：概览页顶部横幅显示待处理预警数，点击直达处理页</li>
+    <li><b>逐条处置</b>：每条预警可标记处理方式与结论，处理完毕自动闭环，全程留痕</li>
+    <li><b>实战价值</b>：某客户提及「半年返修 2-3 回、次品率偏高」，另一客户同期反馈同类故障——两条预警对照，快速识别跨客户的批量质量问题，及时反馈工厂排查</li>
+  </ul>
+</div>
+
+<h3><span class="em">🔁</span>闭环工作流：从一通电话到问题解决</h3>
+
+<div class="flow">
+  <span class="fstep">📞 上传录音</span><span class="farr">→</span>
+  <span class="fstep">🎙 自动转写</span><span class="farr">→</span>
+  <span class="fstep">🧠 AI 分析提炼</span><span class="farr">→</span>
+  <span class="fstep hot">⭐ 待办生成</span><span class="farr">+</span>
+  <span class="fstep hot">⭐ 敏感预警</span><span class="farr">→</span>
+  <span class="fstep">✍ 跟进留痕</span><span class="farr">→</span>
+  <span class="fstep">✔ 闭环处置</span><span class="farr">→</span>
+  <span class="fstep">📚 字典反哺（越用越准）</span>
+</div>
+
+<p>整个链路里，<b>待办与预警是两大枢纽</b>：待办确保「答应客户的事有着落」，预警确保「客户不满的事有人管」。字典反哺则让系统随使用不断进化——你每修正一次归类，下次同类内容就自动判对。</p>
+
+<h2 id="c3"><span class="no">第 03 章</span>操作手册 · 从启动到日常使用</h2>
+
+<h3><span class="em">🚀</span>快速上手（三步开始）</h3>
+
+<div class="step">
+  <div class="sn">1</div>
+  <div class="sc">
+    <h4>启动服务</h4>
+    <p>双击项目目录下的 <code>启动拜访志.bat</code>；或命令行执行 <code>node server\server.js</code>。服务在本机 8897 端口运行，窗口显示访问地址即启动成功，<b>保持窗口开启</b>即可。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="sn">2</div>
+  <div class="sc">
+    <h4>打开页面</h4>
+    <p>电脑访问 <code>http://localhost:8897/</code>；手机（同一 WiFi）访问 <code>http://192.168.16.240:8897/</code>（以启动窗口打印的 IP 为准）。建议在手机浏览器中「添加到主屏幕」，一键直达。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="sn">3</div>
+  <div class="sc">
+    <h4>上传第一通录音</h4>
+    <p>点击右上角<b>上传录音</b>按钮，选择音频文件即完成。系统自动排队转写→AI 分析，按钮上会实时显示「转写中 · 余 N」「待分析 N」状态，全程无需等待或手动刷新——分析完成，页面自动更新。</p>
+  </div>
+</div>
+
+<div class="tip"><b>💡 手机上传最顺手：</b>通话结束后，用微信/文件管理器把录音发送或保存到手机，再在手机浏览器打开本系统上传——从挂电话到完成沉淀，一分钟内搞定。若手机提示页面样式异常，多为浏览器缓存了旧版，在地址后加 <code>?r=2</code> 强制刷新即可。</div>
+
+<h3><span class="em">⏱️</span>日常五分钟工作流（建议每天固定执行）</h3>
+
+<p>把系统用出价值的关键，是养成一个<b>极轻量</b>的日常节奏。以下流程实测五分钟内完成：</p>
+
+<div class="step">
+  <div class="sn">1</div>
+  <div class="sc">
+    <h4>看概览：今天该管什么（约 1 分钟）</h4>
+    <p>打开概览页，三处必看：<b>顶部预警横幅</b>（有红色横幅立即点进去处理）；<b>统计卡「已超期」</b>（红色数字 = 昨天失约的承诺）；<b>重点事项主线</b>（置顶的五星要点，客户的核心诉求主线）。</p>
+    <p class="ops">概览页每个数字块都可以点击，直达对应筛选列表</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="sn">2</div>
+  <div class="sc">
+    <h4>清预警：敏感问题不过夜（约 1 分钟）</h4>
+    <p>预警页按严重程度列出故障/投诉/账期/回款等敏感信号。逐条打开，判断真伪与优先级：<b>误报</b>直接标记排除；<b>属实</b>标记处理方式、写明结论，转成待办或直接闭环。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="sn">3</div>
+  <div class="sc">
+    <h4>推进待办：清「今天到期」与「超期」（约 2 分钟）</h4>
+    <p>待办页切到「今天到期」+「超期」两个筛选，逐条处理：能办的当场办，办不了的记一条跟进（写清推进到哪一步、堵点是什么），必要时顺延日期并说明原因。高优先（⭐）项永远先处理。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="sn">4</div>
+  <div class="sc">
+    <h4>随手传：当天的电话录音丢进队列（约 30 秒）</h4>
+    <p>把今天与客户的通话录音上传，剩下的交给系统。明天打开概览，新的待办和预警已自动就位——这就是系统「越用越懂你」的节奏。</p>
+  </div>
+</div>
+
+<div class="note"><b>⚠️ 一个原则：</b>待办可以顺延，但<b>每条超期待办必须留下跟进记录</b>。「顺延 + 写明原因」是管理动作，「只改日期不说明」是自欺——系统用超期红色高亮提醒这一点。</div>
+
+<h3><span class="em">📖</span>七大页面逐一说明</h3>
+
+<p>系统顶部共七个页签：<b>概览 · 通话 · 待办 · 重点 · 预警 · 客户 · 字典</b>。页签上会显示未完成待办数、待处理预警数徽标，点击切换页面。</p>
+
+<div class="grid2">
+  <div class="card hl-card">
+    <h4>🏠 概览（首页）</h4>
+    <p>每天的工作驾驶舱，全部数字块可点击直达：</p>
+    <ul class="klist">
+      <li><b>四张统计卡</b>：累计通话 / 未完成待办（含高优先数）/ 已超期 / 今日已推进</li>
+      <li><b>重点事项主线</b>：置顶五星要点前 6 条，点开即进客户档案</li>
+      <li><b>待办节奏</b>：超期/今天到期/本周内/高优先四格数字，点击跳转对应筛选；下方列高优先与今日到期待办</li>
+      <li><b>最近跟进动态</b>：谁在什么时间推进了什么</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>📞 通话</h4>
+    <p>全部通话记录列表，按时间倒序：</p>
+    <ul class="klist">
+      <li>显示客户、时长、摘要要点、自动归类结果</li>
+      <li>点击任意一条进入<b>通话详情</b>：完整转写稿 + AI 提炼的要点/问题/承诺/情绪</li>
+      <li>详情内可修正归类、编辑要点、补充人工备注</li>
+    </ul>
+  </div>
+  <div class="card hl-card">
+    <h4>⭐ 待办（核心）</h4>
+    <p>所有行动项的中枢，六大筛选：</p>
+    <ul class="klist">
+      <li>全部未完成 / 超期 / 今天到期 / 本周内 / 高优先 / 已完成</li>
+      <li>每条待办显示来源客户、期限、优先级、生成时间</li>
+      <li>点开待办 → 写跟进记录（推进中/有突破/已闭环）→ 必要时顺延</li>
+      <li>筛选状态可通过地址直达，如 <code>#/todos?scope=overdue</code></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>📌 重点</h4>
+    <p>跨通话沉淀的客户核心要点：</p>
+    <ul class="klist">
+      <li>AI 从通话中提炼的长期性重点（采购偏好、合作意向、关键人信息等）</li>
+      <li>可置顶（五星）、可人工补充修正</li>
+      <li>概览页「重点事项主线」即取自这里的置顶项</li>
+    </ul>
+  </div>
+  <div class="card hl-card r">
+    <h4>🚨 预警（核心）</h4>
+    <p>敏感信号专属处理台：</p>
+    <ul class="klist">
+      <li>故障 / 投诉 / 账期 / 回款等敏感命中，按严重程度排列</li>
+      <li>每条预警点开可见命中原文上下文</li>
+      <li>处置四选：误报排除 / 已核实 / 转待办 / 已闭环，均留痕</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>👤 客户</h4>
+    <p>已合作客户的关系全景页：</p>
+    <ul class="klist">
+      <li>汇总该客户全部通话、待办、重点、预警</li>
+      <li><b>📤 导出分享 HTML</b>：一键生成离线单文件（含拜访记录/待办/要点/跟进），可直接发微信或邮件给同事/上级——对方无需装任何软件，浏览器打开即看</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h4>📚 字典（让系统越用越准）</h4>
+  <p>字典页是系统「自我进化」的引擎，三个区块：</p>
+  <ul class="klist">
+    <li><b>分类体系</b>：通话自动归类的类目树（技术咨询/售后/商务/投诉等）</li>
+    <li><b>自动归类规则</b>：当前生效的关键词→类目映射，识别率一目了然</li>
+    <li><b>术语纠错</b>：顶部输入行填「误 → 正」即可添加；也可点击<b>扫描</b>一键扫描全库转写稿，把行业黑话（型号俗称、方言人名等）批量纠正——<b>改一处，全库生效</b>，下次转写直接输出正确词</li>
+  </ul>
+</div>
+
+<h3><span class="em">⚙️</span>系统设置与维护</h3>
+
+<p>点击右上角 <code>⚙</code> 按钮打开设置面板（抽屉式，不离开当前页面）：</p>
+
+<div class="tw"><table>
+<thead><tr><th>设置项</th><th>说明</th><th>建议</th></tr></thead>
+<tbody>
+<tr><td><b>访问口令</b></td><td>开启后局域网内其他设备访问需先输口令；本机不受影响</td><td>数据含客户信息，建议开启</td></tr>
+<tr><td><b>转写模型</b></td><td>轻量 base（更快更省）/ 标准 small（更准）</td><td>日常够用选 base；重要录音多选 small</td></tr>
+<tr><td><b>原始录音保留</b></td><td>7 天 / 30 天 / 90 天 / 永久；到期只删原始音频，转写稿与摘要全保留</td><td>默认 30 天，兼顾隐私与回溯</td></tr>
+<tr><td><b>空间清理</b></td><td>一键删除超期原始录音，查看空间占用</td><td>每月清一次即可</td></tr>
+</tbody></table></div>
+
+<div class="note"><b>🔒 数据安全：</b>全部数据（录音、转写稿、待办、字典）仅存本机 <code>data/</code> 目录（SQLite 数据库 + 音频文件），<b>不上云、不外传</b>。服务进程仅占约 50MB 内存，转写时临时加载模型、结束即释放。备份只需拷贝 <code>data/</code> 目录。</div>
+
+<h2 id="c4"><span class="no">第 04 章</span>对比分析 · 本系统的独特价值</h2>
+
+<h3><span class="em">⚖️</span>四类工具综合对比</h3>
+
+<p>把本系统放进真实工作场景，与公司大模型、传统 CRM、网上常见「录音转写工具」横向对比（<b>✔</b> 具备 / <b>—</b> 不具备 / <span style="background:var(--soft)">高亮</span> 为本系统）：</p>
+
+<div class="tw"><table>
+<thead><tr><th>能力维度</th><th>公司大模型<br><span style="font-weight:400;font-size:11px">客户画像系统</span></th><th>传统 CRM</th><th>网上录音转写工具</th><th>本系统</th></tr></thead>
+<tbody>
+<tr><td>通话录音自动转写</td><td class="yes">✔</td><td class="no">—</td><td class="yes">✔</td><td class="me"><b>✔</b></td></tr>
+<tr><td>AI 提炼要点/问题/承诺</td><td class="yes">✔</td><td class="no">—</td><td>基础摘要</td><td class="me"><b>✔</b></td></tr>
+<tr><td>客户画像与采购特征沉淀</td><td class="yes">✔ 深度</td><td class="no">—</td><td class="no">—</td><td class="no">— 交给大模型</td></tr>
+<tr><td>待办自动生成（期限+优先级）</td><td class="no">—</td><td class="no">— 需手填</td><td class="no">—</td><td class="me"><b>✔ 自动</b></td></tr>
+<tr><td>敏感问题预警（故障/投诉/账期）</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="me"><b>✔</b></td></tr>
+<tr><td>超期自动标红提醒</td><td class="no">—</td><td>部分</td><td class="no">—</td><td class="me"><b>✔</b></td></tr>
+<tr><td>跟进留痕（非改日期）</td><td class="no">—</td><td>手填日志</td><td class="no">—</td><td class="me"><b>✔ 按待办组织</b></td></tr>
+<tr><td>术语纠错全库生效</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="me"><b>✔</b></td></tr>
+<tr><td>离线单文件分享</td><td class="no">—</td><td>账号授权</td><td class="no">—</td><td class="me"><b>✔</b></td></tr>
+<tr><td>数据归属</td><td>公司云端</td><td>公司/云端</td><td>第三方云端（隐私风险）</td><td class="me"><b>✔ 全本机</b></td></tr>
+<tr><td>使用成本</td><td>公司统一部署</td><td>按席位年费</td><td>按分钟/条收费</td><td class="me"><b>✔ 零费用</b></td></tr>
+<tr><td>部署门槛</td><td>需公司 IT</td><td>需实施顾问</td><td>注册即用</td><td class="me"><b>✔ 双击即启</b></td></tr>
+</tbody></table></div>
+
+<h3><span class="em">💎</span>三大独特优势</h3>
+
+<div class="card hl-card">
+  <h4>优势一：从「分析」到「行动」的闭环——大模型与 CRM 都缺的那一环</h4>
+  <p>公司大模型擅长<b>听懂</b>电话（画像、汇总、特征），传统 CRM 擅长<b>存住</b>档案（基本信息、商机阶段），但「听懂之后该做什么、谁在什么时候做、做了没有」——这一段恰恰是客户关系出问题的高发区。</p>
+  <p>本系统把这一环完整接住：<b>AI 分析 → 待办自动生成 → 预警拦截 → 跟进留痕 → 闭环复盘</b>。答应客户「9/12 前反馈工厂排查结论」，系统就真的会在 9/12 提醒你；客户随口抱怨「次品率偏高」，系统就真的会把它拦进预警池而不是沉进 200 条通话记录里。</p>
+</div>
+
+<div class="card hl-card g">
+  <h4>优势二：为「已合作客户」定制的轻量——不重复建档，只经营关系</h4>
+  <p>传统 CRM 的重头戏是「客户档案管理」——但对全是已合作客户的团队，重复维护档案是纯负担。本系统<b>零档案门槛</b>：上传第一通电话，客户页签自动生成，之后每通电话自动归档到对应客户名下。</p>
+  <p>省下的精力聚焦在真正产出复购的动作上：<b>跨产品线机会识别</b>（客户提到竞品痛点即成待办）、<b>解决方案跟进</b>（授权、试用样品的发出与回收全程留痕）、<b>长期关系维护</b>（重点事项置顶，核心诉求不随时间遗忘）。</p>
+</div>
+
+<div class="card hl-card b">
+  <h4>优势三：越用越准的私有大脑——数据不出门，经验不出走</h4>
+  <p>网上录音工具按条收费且转写稿存在第三方云端，客户数据安全存疑；本系统<b>数据全本机</b>（SQLite + 本地音频），零持续费用。更重要的是<b>字典反哺机制</b>：你修正的每一个术语、每一处归类，都成为系统的私有知识——三个月后，它对你们行业黑话、客户简称、产品型号的识别精度，是任何通用工具不可能达到的。</p>
+  <p>这套「纠错 → 全库生效 → 下次直接判对」的进化能力，等于团队把通话处理经验沉淀成了<b>可传承的数字资产</b>——新人接手客户，历史通话、待办、重点、字典全部现成。</p>
+</div>
+
+<div class="note"><b>📌 与公司大模型的配合关系（不是替代，是接力）：</b>本系统负责「行动层」——待办、预警、跟进、闭环；公司大模型负责「分析层」——客户画像、采购特征、录音内容汇总叠加。两层各司其职：本系统的转写稿与客户沉淀，可作为大模型画像分析的输入；大模型的全景画像，反过来辅助本系统判断哪个客户的待办更值得优先推进。</div>
+
+<h2 id="c5"><span class="no">第 05 章</span>未来规划 · 从内部工具到开源共享</h2>
+
+<h3><span class="em">🌍</span>为什么值得开放给更多人</h3>
+
+<p>这套系统解决的不是某个团队的特例问题，而是一个<b>普遍存在却被长期忽视</b>的行业痛点：</p>
+
+<ul>
+  <li><b>中小销售团队的普遍困境</b>：请不起 CRM 实施顾问，也用不惯为大企业设计的重型系统；客户电话打完就忘，承诺没人盯，问题沉底没人捞。</li>
+  <li><b>外勤/驻场/售后场景的空白</b>：大量行业（设备制造、工程服务、医药流通、政企服务、专业服务）的核心工作都发生在电话里，而现有工具几乎没有为「通话→行动闭环」设计。</li>
+  <li><b>数据主权的现实需求</b>：越来越多的团队意识到客户通话数据是最敏感的资产之一，「存第三方云端按条付费」的模式天然让人不放心。</li>
+</ul>
+
+<p>「上传一通电话 → 自动知道该做什么 → 做完有据可查」——这个闭环对任何靠客户关系吃饭的团队都成立。这是本系统通用价值的根基。</p>
+
+<h3><span class="em">🧭</span>开源路线图</h3>
+
+<div class="tw"><table>
+<thead><tr><th>阶段</th><th>目标</th><th>关键事项</th></tr></thead>
+<tbody>
+<tr><td><b>近期</b></td><td>内部打磨</td><td>真实使用中持续打磨待办/预警体验；术语字典沉淀到「开箱即用」水平；补充部署文档与常见问题</td></tr>
+<tr><td><b>中期</b></td><td>开源发布</td><td>代码整理脱敏后发布 GitHub：零依赖安装包（双击即用）、Docker 一键部署、多语言转写模型可选</td></tr>
+<tr><td><b>远期</b></td><td>社区共建</td><td>字典/归类规则模板市场（不同行业上传各自的术语库）、预警规则自定义、与主流 CRM 的导入导出打通</td></tr>
+</tbody></table></div>
+
+<h3><span class="em">❤️</span>帮助他人的意义</h3>
+
+<div class="grid2">
+  <div class="card hl-card g">
+    <h4>对销售个人</h4>
+    <p>不再靠脑子和笔记本记承诺。每一通电话的价值被完整保留，每一句「回头我给您确认一下」都有下文。新人三个月上手变成六周——历史通话、待办、重点全部现成，客户交接不再断层。</p>
+  </div>
+  <div class="card hl-card b">
+    <h4>对小团队管理者</h4>
+    <p>不装监控式软件，也能看到团队真实的工作节奏：谁在推进、谁在积压、哪些客户的问题长期没解决——从「口头汇报」到「数据说话」，且数据全在本机，团队信任零损耗。</p>
+  </div>
+  <div class="card hl-card">
+    <h4>对客户</h4>
+    <p>这是最终极的意义：供应商不再忘记答应过的事，不再对反复提出的问题装聋。每一次被预警拦下的投诉、每一个被闭环的承诺，都是客户体验的一次真实改善——<b>工具的价值，最终落在关系里</b>。</p>
+  </div>
+  <div class="card hl-card r">
+    <h4>对开源社区</h4>
+    <p>提供一个「AI 落地线下业务」的完整参考：本地语音转写 + LLM 分析 + 领域字典反哺的完整链路，全部用轻量技术栈实现。任何人都可以基于它改造出自己行业的版本。</p>
+  </div>
+</div>
+
+<div class="tip"><b>🌱 一句话总结：</b>把「听过的电话」变成「做过的事」，把「答应的话」变成「兑现的承诺」——这套系统想帮每一个靠客户信任吃饭的团队，把信任经营成体系。</div>
+
+<footer>
+  拜访志 VisitLog · 系统介绍与操作手册<br>
+  自包含单文件 · 可直接分享给团队成员或纳入培训材料 · 打印效果已优化<br>
+  生成于 2026 年 9 月
+</footer>
+
+
+</div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "name": "visitlog",
+  "version": "1.0.0",
+  "description": "拜访志 VisitLog — 客户通话记录平台：上传录音 → 本地转写 → AI 拆解归类 → 待办与重点沉淀，改判结果反哺字典",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "start:env": "node --env-file=.env server/server.js",
+    "weekly": "node scripts/weekly_report/run.js",
+    "download-model": "python3 scripts/download_small.py"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "optionalDependencies": {
+    "multer": "^2.2.0"
+  },
+  "comments": {
+    "_note": "multer 非必需：未安装时 server/api_upload.js 自动回落到 server/multipart.js 原生解析器"
+  },
+  "keywords": [
+    "crm",
+    "whisper",
+    "asr",
+    "sales",
+    "visit-log",
+    "sqlite",
+    "call-record",
+    "speech-to-text",
+    "local-first"
+  ],
+  "license": "MIT"
+}

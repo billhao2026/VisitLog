@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: 语法与启动检查
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: JS 语法检查
+        shell: bash
+        run: |
+          for f in server/*.js public/*.js scripts/weekly_report/*.js; do
+            node --check "$f" || exit 1
+          done
+
+      - name: Python 语法检查
+        shell: bash
+        run: |
+          python3 -m py_compile scripts/*.py
+
+      - name: 启动冒烟测试
+        shell: bash
+        run: |
+          node server/server.js > server.log 2>&1 &
+          SERVER_PID=$!
+          sleep 5
+          # 首页可达 + 核心 API 返回 ok
+          curl -s --noproxy '*' -o /dev/null -w "首页 HTTP %{http_code}\n" http://localhost:8897/
+          curl -s --noproxy '*' http://localhost:8897/api/stats | head -c 200
+          echo
+          kill $SERVER_PID 2>/dev/null || true
+
+      - name: 检查敏感信息泄漏
+        shell: bash
+        run: |
+          # 防止误提交真实数据 / 本机路径 / 常见密钥
+          FAIL=0
+          if git ls-files | grep -E '\.(db|sqlite3|wav|mp3|m4a)$'; then
+            echo "::error::检测到数据/音频文件被提交"
+            FAIL=1
+          fi
+          if grep -rInE '/Users/[a-z]+/|C:\\Users\\[a-zA-Z]+' \
+               --include='*.js' --include='*.py' --include='*.md' \
+               --include='*.json' --include='*.bat' --include='*.command' . \
+               | grep -v 'public/vendor/'; then
+            echo "::error::检测到硬编码本机路径"
+            FAIL=1
+          fi
+          if grep -rInE '(sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' \
+               --include='*.js' --include='*.py' --include='*.md' --include='*.json' . \
+               | grep -v 'public/vendor/'; then
+            echo "::error::检测到疑似密钥"
+            FAIL=1
+          fi
+          exit $FAIL
+
+      - name: 上传日志
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log-${{ matrix.os }}
+          path: server.log

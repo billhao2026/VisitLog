@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>拜访志 · VisitLog</title>
+<link rel="stylesheet" href="/style.css?v=20260914b">
+<link rel="stylesheet" href="/pages.css?v=20260914b">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23C2410C'/><text x='16' y='23' font-size='19' font-family='Georgia,serif' fill='%23FBF9F5' text-anchor='middle'>访</text></svg>">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">
+    <span class="mark">访</span>
+    <div class="brand-txt">
+      <h1>拜访志</h1>
+      <p>VisitLog · 通话沉淀 · 问题归类 · 待办闭环</p>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="mast-right">
+    <button class="qbtn" id="setbtn" title="系统设置：模型 / 录音保留 / 空间">⚙</button>
+    <button class="qbtn" id="qbtn" title="上传与处理队列"></button>
+  </div>
+</header>
+
+<main id="view" class="view"></main>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="drawer-bg" data-close></div>
+  <aside class="drawer-panel"><div class="drawer-head">
+    <button class="x" data-close>✕</button>
+  </div><div class="drawer-body" id="drawer-body"></div></aside>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="/app.js?v=20260914b"></script>
+<script src="/page-home.js?v=20260914b"></script>
+<script src="/page-calls.js?v=20260914b"></script>
+<script src="/follow.js?v=20260914b"></script>
+<script src="/blocks.js?v=20260914b"></script>
+<script src="/page-call.js?v=20260914b"></script>
+<script src="/page-todos.js?v=20260914b"></script>
+<script src="/page-flags.js?v=20260914b"></script>
+<script src="/page-dict.js?v=20260914b"></script>
+<script src="/page-cust.js?v=20260914b"></script>
+<script src="/setup.js?v=20260914b"></script>
+<script>App.boot()</script>
+</body>
+</html>
