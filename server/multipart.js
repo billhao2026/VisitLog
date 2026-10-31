@@ -52,14 +52,28 @@ function single(field) {
     let guard = 0;
 
     let settled = false;
+    // 写流必须完全落盘后才交给上层读取，否则会出现
+    // ENOENT: no such file or directory（文件还没写完就被读）
+    const pendingWrites = [];
+    const trackWrite = (stream) => {
+      pendingWrites.push(new Promise((res) => {
+        stream.on('close', res);
+        stream.on('error', res);
+      }));
+    };
+    const flushWrites = () => Promise.all(pendingWrites);
+
     const finish = (err) => {
-      if (ws) { try { ws.end(); } catch (e) {} ws = null; }
+      if (ws) { try { ws.end(); } catch (e) {} }
       if (settled) return;
       settled = true;
-      if (err) return done(err);
-      req.body = body;
-      if (file) req.file = Object.assign(file, { size });
-      done(null);
+      // 等所有写流关闭（数据已落盘）再回调
+      flushWrites().then(() => {
+        if (err) return done(err);
+        req.body = body;
+        if (file) req.file = Object.assign(file, { size });
+        done(null);
+      });
     };
 
     const startPart = (headerRaw) => {
@@ -70,6 +84,7 @@ function single(field) {
         const p = path.join(DEST, disk);
         ws = fs.createWriteStream(p);
         ws.on('error', (e) => finish(e));
+        trackWrite(ws);
         file = { path: p, originalname: h.filename, fieldname: h.name, mimetype: h.contentType };
         size = 0;
       } else {

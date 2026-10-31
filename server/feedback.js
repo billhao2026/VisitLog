@@ -74,8 +74,8 @@ function addFollowup(o) {
 function recordCorrection(callId, field, oldValue, newValue, why = '') {
   if (String(oldValue ?? '') === String(newValue ?? '')) return null;
   const r = run(`INSERT INTO corrections(call_id,field,old_value,new_value,evidence,why,created_at,created_by)
-                 VALUES(?,?,?,?,?,?,?, ownerName())`,
-    callId, field, String(oldValue ?? ''), String(newValue ?? ''), '', why, now());
+                 VALUES(?,?,?,?,?,?,?,?)`,
+    callId, field, String(oldValue ?? ''), String(newValue ?? ''), '', why, now(), ownerName());
   if (field === 'category' && newValue) {
     const cat = findCategory(newValue);
     if (cat) run('UPDATE categories SET fixed_count=fixed_count+1, updated_at=? WHERE id=?', now(), cat.id);

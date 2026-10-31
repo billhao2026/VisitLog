@@ -61,12 +61,14 @@ module.exports = {
       run('UPDATE calls SET customer_id=? WHERE id=?', cid, id);
       nm.touch(cid, c.visited_at); // 建立关联后再统计次数
     }
+    // 只在传了非空值时才覆盖，避免 AI 返回空字段把已有内容清掉
+    const keep = (v, fallback) => (v === undefined || v === null || String(v).trim() === '') ? fallback : v;
     run(`UPDATE calls SET summary=?, quality_score=?, sentiment=?, next_followup_days=?,
          analyze_status='done', analyze_at=?, analyze_err=NULL, updated_at=? WHERE id=?`,
-      b.summary ?? c.summary,
-      b.quality_score ?? c.quality_score,
-      b.sentiment ?? c.sentiment,
-      b.next_followup_days ?? c.next_followup_days,
+      keep(b.summary, c.summary),
+      keep(b.quality_score, c.quality_score),
+      keep(b.sentiment, c.sentiment),
+      keep(b.next_followup_days, c.next_followup_days),
       now(), now(), id);
 
     const custId = get('SELECT customer_id FROM calls WHERE id=?', id).customer_id;

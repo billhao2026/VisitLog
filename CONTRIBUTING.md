@@ -116,9 +116,51 @@ server/           HTTP 服务 + 路由 + 数据层（零框架，Node 原生 htt
 public/           前端（原生 JS，无构建步骤）
   app.js          核心：路由 / 接口 / 抽屉 / 队列轮询
   page-*.js       各页面
-scripts/          转写脚本、术语批量导入、覆盖率检查、周报
+scripts/          转写脚本、术语批量导入、覆盖率检查、周报、演示数据
 prompts/          AI 分析提示词模板
+test/             冒烟测试（Node 内置 test runner，零依赖）
 ```
+
+---
+
+## 测试
+
+项目用 **Node 内置 test runner**，不需要装任何测试框架。
+
+```bash
+npm test                              # 跑全部
+node --test "test/todos.test.js"     # 跑单个文件
+```
+
+### 测试结构
+
+| 文件 | 覆盖 |
+|---|---|
+| `test/boot.test.js` | 首次启动：零依赖启动、分类字典初始化、静态资源完整性、非法输入健壮性 |
+| `test/asr-queue.test.js` | 转写队列：上传去重、队列状态、失败不卡死 |
+| `test/ai-writeback.test.js` | AI 回写：六件套落库、改判反哺、术语重套历史 |
+| `test/todos.test.js` | 待办：创建、跟进顺延、闭环、超期标记 |
+
+### 测试怎么跑起来的
+
+`test/helpers.js` 会把项目复制到系统临时目录，在副本里启动一个**隔离的**服务实例（独立数据库 + 独立端口），测试完自动销毁。
+
+**所以测试不会碰你的真实数据。**
+
+### 写新测试
+
+```js
+const { test } = require('node:test');
+const assert = require('node:assert');
+const { withServer } = require('./helpers.js');
+
+test('我的功能 · 正常工作', withServer(async (s) => {
+  const r = await s.get('/api/stats');
+  assert.strictEqual(r.body.ok, true);
+}));
+```
+
+`withServer` 会自动在用例结束后清理沙箱。
 
 ---
 
@@ -207,12 +249,16 @@ Closes #42
 
 ### 提交前自检清单
 
+- [ ] `npm test` 全部通过
 - [ ] `node server/server.js` 能正常启动，浏览器能打开
-- [ ] 语法检查通过：`for f in server/*.js public/*.js; do node --check "$f"; done`
+- [ ] 语法检查通过：`for f in server/*.js public/*.js scripts/*.js; do node --check "$f"; done`
 - [ ] Python 改动：`python3 -m py_compile scripts/*.py`
 - [ ] **没有硬编码本地路径**（`/Users/xxx`、`C:\Users\xxx`）
 - [ ] **没有硬编码真实客户名、人名、电话**
 - [ ] **没有引入新的运行时依赖**（如需，先开 Issue 讨论）
+- [ ] **没有破坏零依赖启动**（不需要 `npm install` 就能跑核心功能）
+- [ ] **没有添加把用户数据发到外部服务器的代码**
+- [ ] **新增/修改的功能有对应测试**
 - [ ] 涉及数据结构的改动：确认 `schema.sql` 的迁移逻辑幂等，老库能平滑升级
 - [ ] 相关文档已同步更新
 

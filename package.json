@@ -7,7 +7,9 @@
     "start": "node server/server.js",
     "start:env": "node --env-file=.env server/server.js",
     "weekly": "node scripts/weekly_report/run.js",
-    "download-model": "python3 scripts/download_small.py"
+    "download-model": "python3 scripts/download_small.py",
+    "demo": "node scripts/demo_data.js",
+    "test": "node --test --test-concurrency=1 \"test/*.test.js\""
   },
   "engines": {
     "node": ">=22.5.0"

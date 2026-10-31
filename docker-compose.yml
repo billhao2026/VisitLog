@@ -1,0 +1,51 @@
+# 拜访志 VisitLog · 一键启动
+#
+#   docker compose up -d          启动
+#   docker compose logs -f        看日志
+#   docker compose down           停止（数据保留）
+#
+# 首次启动会下载 500MB 模型，构建需要几分钟。
+
+services:
+  visitlog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # 模型仓库。国内可换镜像站加速
+        MODEL_REPO: Systran/faster-whisper-small
+        HF_ENDPOINT: https://hf-mirror.com
+    image: visitlog:latest
+    container_name: visitlog
+    restart: unless-stopped
+    ports:
+      # 左边是宿主机端口，右边是容器端口。改成 "8897:8897" 之外的自定义端口也可以
+      - "8897:8897"
+    environment:
+      PORT: "8897"
+      # 跟进人 / 记录人默认值，也可进「设置」页改
+      VL_OWNER: "${VL_OWNER:-我}"
+      # 转写用 Python（在镜像内）
+      VL_PY: /usr/bin/python3
+      VL_MODEL_DIR: /app/models/small
+      # 周报邮件（可选，不配也能生成 HTML 报告）
+      # VL_SMTP_HOST: smtp.163.com
+      # VL_SMTP_USER: you@example.com
+      # VL_SMTP_PASS: your_authorization_code
+      # VL_SMTP_TO: you@example.com
+    volumes:
+      # 数据持久化：数据库、录音、周报。容器重建不丢
+      - visitlog-data:/app/data
+      - visitlog-audio:/app/audio
+      - visitlog-reports:/app/报告
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:8897/api/stats',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  visitlog-data:
+  visitlog-audio:
+  visitlog-reports:

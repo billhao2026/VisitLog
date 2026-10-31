@@ -35,28 +35,52 @@
 
 ## 快速开始
 
-### 1. 克隆并安装
+### 方式 A：Docker（推荐，三条命令）
 
 ```bash
 git clone https://github.com/<你的用户名>/visitlog.git
 cd visitlog
+docker compose up -d
 ```
 
-无需 `npm install`——核心功能零外部依赖。若想让大文件上传更快，可选装：
+浏览器打开 **http://localhost:8897/**。
+
+首次构建会下载 500MB 模型，需要几分钟。数据存在 Docker volume 里，容器重建不丢。
+
+> 没装 Docker？看 [方式 B](#方式-b本地运行)。
+
+### 方式 B：本地运行
 
 ```bash
-npm install multer
+git clone https://github.com/<你的用户名>/visitlog.git
+cd visitlog
+npm start
 ```
 
-### 2. 启动
+浏览器打开 **http://localhost:8897/**
 
-- **macOS**：双击 `启动拜访志.command`（首次需在「访达 → 右键 → 打开」放行一次），关闭窗口即停止
-- **Windows**：双击 `启动拜访志.bat`
-- **命令行**：`npm start`
+**核心功能零依赖**，不需要 `npm install`。若想让大文件上传更快，可选装：
 
-浏览器打开 `http://localhost:8897/`
+```bash
+npm install
+```
 
-### 3. 启用转写（可选）
+也可以双击启动：
+
+- **macOS**：`启动拜访志.command`（首次需在「访达 → 右键 → 打开」放行一次），关闭窗口即停止
+- **Windows**：`启动拜访志.bat`
+
+### 想先看效果？
+
+```bash
+npm run demo
+```
+
+灌入一批**虚构的**演示数据（16 通通话 / 5 个客户 / 8 条待办），打开界面立刻能看到完整效果。
+
+> 生产使用前记得清掉：`npm run demo -- --reset`
+
+### 启用转写（可选）
 
 ```bash
 python3 -m venv .venv
@@ -67,7 +91,7 @@ npm run download-model            # 下载 small 模型，约 500MB
 
 不配置也能用——只是无法自动转写，你可以手动粘贴文本。
 
-### 4. 手机录音上传（可选）
+### 手机录音上传（可选）
 
 手机与电脑连同一 WiFi，访问 `http://<电脑局域网IP>:8897/`。
 
@@ -160,15 +184,26 @@ npm run weekly
 
 | 文档 | 内容 |
 |---|---|
-| [INSTALL.md](INSTALL.md) | **下载与安装手册** —— 环境要求、克隆、安装、配置、迁移 |
+| [INSTALL.md](INSTALL.md) | **下载与安装手册** —— 环境要求、克隆、Docker / 本地两种安装、配置、迁移 |
 | [OPERATION.md](OPERATION.md) | **操作手册** —— 日常流程、术语纠错、跨行业复用指南 |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 故障排查 —— 按现象查原因和修法 |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南 —— 开发环境、代码规范、PR 流程 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南 —— 开发环境、代码规范、测试、PR 流程 |
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | 行为准则 |
 | [SECURITY.md](SECURITY.md) | 安全策略 —— 漏洞报告方式、已知限制、自我保护建议 |
 | [SUPPORT.md](SUPPORT.md) | 获取支持 —— 提问格式与脱敏提醒 |
 | [CHANGELOG.md](CHANGELOG.md) | 更新日志 |
 | 在线手册 | 启动后访问 `http://localhost:8897/manual.html` |
+
+---
+
+## 开发
+
+```bash
+npm test        # 29 个冒烟测试，零新增依赖
+npm run demo    # 灌入虚构演示数据
+```
+
+测试跑在临时目录的隔离沙箱里，**不会碰你的真实数据**。
 
 ---
 

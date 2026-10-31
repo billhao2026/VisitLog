@@ -25,14 +25,20 @@ jobs:
       - name: JS 语法检查
         shell: bash
         run: |
-          for f in server/*.js public/*.js scripts/weekly_report/*.js; do
+          for f in server/*.js public/*.js scripts/*.js scripts/weekly_report/*.js; do
             node --check "$f" || exit 1
           done
 
       - name: Python 语法检查
         shell: bash
         run: |
-          python3 -m py_compile scripts/*.py
+          for f in scripts/*.py; do
+            python3 -m py_compile "$f" || exit 1
+          done
+
+      - name: 冒烟测试
+        shell: bash
+        run: npm test
 
       - name: 启动冒烟测试
         shell: bash
@@ -57,15 +63,22 @@ jobs:
           fi
           if grep -rInE '/Users/[a-z]+/|C:\\Users\\[a-zA-Z]+' \
                --include='*.js' --include='*.py' --include='*.md' \
-               --include='*.json' --include='*.bat' --include='*.command' . \
-               | grep -v 'public/vendor/'; then
+               --include='*.json' --include='*.bat' --include='*.command' \
+               --include='*.yml' --include='Dockerfile' . \
+               | grep -v 'public/vendor/' | grep -v 'CONTRIBUTING.md'; then
             echo "::error::检测到硬编码本机路径"
             FAIL=1
           fi
           if grep -rInE '(sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' \
-               --include='*.js' --include='*.py' --include='*.md' --include='*.json' . \
+               --include='*.js' --include='*.py' --include='*.md' --include='*.json' \
+               --include='*.yml' . \
                | grep -v 'public/vendor/'; then
             echo "::error::检测到疑似密钥"
+            FAIL=1
+          fi
+          # 演示数据里的虚构手机号段（1380000xxxx）是刻意保留的示例
+          if git ls-files | grep -E '^data/|^audio/|^models/'; then
+            echo "::error::检测到运行时数据目录被提交"
             FAIL=1
           fi
           exit $FAIL

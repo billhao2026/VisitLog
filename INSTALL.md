@@ -44,9 +44,48 @@ cd visitlog
 
 ## 三、安装
 
-### 3.1 核心功能：零依赖
+### 3.0 方式 A：Docker（推荐）
 
-拜访志的服务器用的是 **Node.js 内置模块**，不需要 `npm install`。
+**如果你有 Docker，这是最省事的方式**——不用装 Node，不用装 Python，不用下模型，一条命令跑起来。
+
+```bash
+cd visitlog
+docker compose up -d
+```
+
+打开 **http://localhost:8897/**
+
+**首次会做的事**：
+1. 构建镜像（装 Node、Python、ffmpeg，约 3-5 分钟）
+2. 下载 Whisper 模型（约 500MB，走 hf-mirror 镜像）
+3. 启动服务
+
+**常用命令**：
+
+```bash
+docker compose logs -f        # 看日志
+docker compose restart       # 重启
+docker compose down           # 停止（数据保留）
+docker compose down -v        # 停止并删除数据卷（彻底清除）
+```
+
+**数据在哪**：Docker volume（`visitlog-data` / `visitlog-audio` / `visitlog-reports`）。容器随便重建，数据不丢。
+
+**换端口**：改 `docker-compose.yml` 里的 `"8897:8897"`，比如 `"9000:8897"`，然后访问 `http://localhost:9000/`。
+
+**设置跟进人**：
+
+```bash
+VL_OWNER=你的名字 docker compose up -d
+```
+
+> Docker 镜像基于 `node:22-bookworm-slim`，Node 版本满足 `node:sqlite` 要求。
+
+---
+
+### 3.1 方式 B：本地运行
+
+**核心功能零依赖**，不需要 `npm install`。
 
 ```bash
 cd visitlog
@@ -162,7 +201,25 @@ tail -f visitlog.log
 
 # 生成周报
 npm run weekly
+
+# 灌入演示数据（虚构数据，方便先看效果）
+npm run demo
+
+# 清空所有数据（含演示数据），恢复到全新状态
+npm run demo -- --reset
+
+# 跑测试
+npm test
 ```
+
+### 开机自启
+
+**Docker 方式**：`docker-compose.yml` 里已配置 `restart: unless-stopped`，Docker 启动时容器会自动拉起。
+
+**本地方式**：
+
+- **macOS**：把 `启动拜访志.command` 拖进「登录项」（系统设置 → 通用 → 登录项）
+- **Windows**：按 `Win+R` 输入 `shell:startup`，把 `启动拜访志.bat` 的快捷方式放进去
 
 ---
 
@@ -234,10 +291,31 @@ cp .env.example .env
 | macOS 双击没反应 | 首次需右键 → 打开；另外检查「系统设置 → 隐私与安全性 → 已阻止」 |
 | 目录不存在报错 | 首次启动会自动创建 `data/`、`audio/`，若手动删过目录，重启一次即可 |
 | 邮件发不出去 | 检查 SMTP 配置；163 邮箱要用**授权码**不是登录密码；确认 `VL_SMTP_SECURE=1`（465） |
+| Docker 构建卡在下载模型 | 模型约 500MB，国内网络慢。改用镜像站：编辑 `docker-compose.yml` 的 `HF_ENDPOINT` |
+| Docker 容器起不来 | `docker compose logs` 看日志；多半是端口被占，改 `docker-compose.yml` 里的端口映射 |
+| Docker 里转写报 Python 错误 | 镜像已装 Python，`VL_PY=/usr/bin/python3`；若自定义了镜像需自行装 faster-whisper |
+
+### Docker 专项
+
+```bash
+# 看构建进度
+docker compose build --progress=plain
+
+# 进去排查
+docker compose exec visitlog bash
+
+# 重建（改了代码后）
+docker compose up -d --build
+
+# 只清数据不删镜像
+docker compose down -v && docker compose up -d
+```
 
 ---
 
 ## 十、卸载
+
+### 本地方式
 
 ```bash
 # 停止服务
@@ -249,6 +327,15 @@ rm -rf visitlog
 ```
 
 数据全在项目目录里，删目录即彻底清除。记得先备份 `data/` 和 `audio/`。
+
+### Docker 方式
+
+```bash
+docker compose down -v      # 停止并删除数据卷
+docker rmi visitlog         # 删除镜像（可选）
+```
+
+> `down -v` 会**删除所有数据卷里的数据**（数据库、录音、周报）。不想删数据就用 `docker compose down`。
 
 ---
 
