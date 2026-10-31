@@ -8,5 +8,5 @@
 # 或用项目脚本一键下载模型（首次运行需要，约 500MB）：
 #   npm run download-model
 
-faster-whisper>=1.0.0
+faster-whisper>=1.2.1
 huggingface_hub>=0.20.0
