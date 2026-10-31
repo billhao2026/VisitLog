@@ -1,11 +1,16 @@
 // 拜访志 · 日程速记（线下活动补录）
-// 落点：<WorkBuddy根>\_日程速记\YYYY-MM-DD.md，供每日复盘自动化合并进时间轴
+// 落点：<日程目录>\YYYY-MM-DD.md，每行一条，便于外部自动化读取
 // 行格式：HH:MM-HH:MM 事件   或   HH:MM 事件
+//
+// 目录通过环境变量 VL_JOURNAL_DIR 配置；未配置时落在项目内的 data/journal/，
+// 不会写到项目目录之外。
 const fs = require('fs');
 const path = require('path');
 const { ROOT } = require('./db.js');
 
-const DIR = path.resolve(ROOT, '..', '_日程速记');
+const DIR = process.env.VL_JOURNAL_DIR
+  ? path.resolve(process.env.VL_JOURNAL_DIR)
+  : path.join(ROOT, 'data', 'journal');
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const ITEM_RE = /^(\d{1,2}:\d{2})\s*(?:[-~–—至]\s*(\d{1,2}:\d{2}))?\s+(.+)$/;
 
@@ -67,7 +72,12 @@ module.exports = {
     const date = normDate(q);
     const raw = readRaw(date);
     const items = sortMarks(parse(raw));
-    return { ok: true, date, items, count: items.length, dir: DIR, exists: !!raw };
+    return {
+    ok: true, date, items, count: items.length,
+    // 只回传目录名，不回传绝对路径：避免在界面上暴露本机目录结构
+    dir: path.basename(DIR),
+    exists: !!raw,
+  };
   },
 
   // 追加一条（也可一次传多条）

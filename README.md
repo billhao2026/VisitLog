@@ -8,18 +8,26 @@
 <table>
 <tr>
 <td width="50%"><img src="docs/screenshot/calls.png" alt="通话流水"></td>
-<td width="50%"><img src="docs/screenshot/customers.png" alt="客户档案"></td>
+<td width="50%"><img src="docs/screenshot/followups.png" alt="跟进唤醒台"></td>
 </tr>
 <tr>
 <td align="center"><b>通话流水</b> — 每通电话的摘要、时长、分析状态</td>
-<td align="center"><b>客户档案</b> — 联系人、跟进人、沉默天数、拜访次数</td>
+<td align="center"><b>跟进唤醒台</b> — 按沉默天数分层，配可编辑话术点</td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/screenshot/todos.png" alt="待办事项"></td>
+<td width="50%"><img src="docs/screenshot/journal.png" alt="日程速记"></td>
+</tr>
+<tr>
+<td align="center"><b>待办事项</b> — 按客户分组、超期高亮、到期日自动避让休假日</td>
+<td align="center"><b>日程速记</b> — 线下活动补录，按天落成 Markdown</td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshot/customers.png" alt="客户档案"></td>
 <td width="50%"><img src="docs/screenshot/dict.png" alt="问题字典"></td>
 </tr>
 <tr>
-<td align="center"><b>待办事项</b> — 按客户分组、超期高亮、优先级与到期日</td>
+<td align="center"><b>客户档案</b> — 联系人、跟进人、沉默天数、拜访次数</td>
 <td align="center"><b>问题字典</b> — 分类体系与术语纠错，改判在此反哺</td>
 </tr>
 </table>
