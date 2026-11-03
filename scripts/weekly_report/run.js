@@ -10,7 +10,7 @@
 //
 // 用法：
 //   node scripts/weekly_report/run.js
-//   VL_SMTP_HOST=smtp.163.com VL_SMTP_USER=me@163.com VL_SMTP_PASS=xxxx node scripts/weekly_report/run.js
+//   VL_SMTP_HOST=smtp.163.com VL_SMTP_USER=me@example.com VL_SMTP_PASS=xxxx node scripts/weekly_report/run.js
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');

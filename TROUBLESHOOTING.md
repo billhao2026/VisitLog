@@ -291,7 +291,7 @@ nc -zv smtp.163.com 465
 cp .env.example .env
 # 编辑 .env 填入 SMTP 配置
 VL_SMTP_HOST=smtp.163.com \
-VL_SMTP_USER=you@163.com \
+VL_SMTP_USER=you@example.com \
 VL_SMTP_PASS=你的授权码 \
 npm run weekly
 ```

@@ -35,11 +35,11 @@ if (RESET) {
 
 // ── 虚构数据（刻意避开真实行业与真实公司）──────────────────
 const CUSTOMERS = [
-  { name: '示例科技', contact: '张经理', phone: '13800000001', region: '华东', level: 'A', type: '重点客户' },
-  { name: '示例制造', contact: '李主管', phone: '13800000002', region: '华南', level: 'B', type: '普通客户' },
-  { name: '示例贸易', contact: '王总监', phone: '13800000003', region: '华北', level: 'B', type: '普通客户' },
-  { name: '示例服务', contact: '赵经理', phone: '13800000004', region: '西南', level: 'C', type: '潜在客户' },
-  { name: '示例实业', contact: '孙总',   phone: '13800000005', region: '华中', level: 'A', type: '重点客户' },
+  { name: '示例科技', contact: '张经理', phone: '示例-000-1', region: '华东', level: 'A', type: '重点客户' },
+  { name: '示例制造', contact: '李主管', phone: '示例-000-2', region: '华南', level: 'B', type: '普通客户' },
+  { name: '示例贸易', contact: '王总监', phone: '示例-000-3', region: '华北', level: 'B', type: '普通客户' },
+  { name: '示例服务', contact: '赵经理', phone: '示例-000-4', region: '西南', level: 'C', type: '潜在客户' },
+  { name: '示例实业', contact: '孙总',   phone: '示例-000-5', region: '华中', level: 'A', type: '重点客户' },
 ];
 
 // 重点事项文案与类型：数组长度互质（5 与 3），避免与 i % 3 的筛选周期重合

@@ -1,6 +1,6 @@
 // 拜访志 · 跟进板块：超 30 天未联系客户的唤醒清单 + 建议 + 已处理
 // 思路：stale 客户 → 按「商机在手 / 历史成交 / 线索沉睡」分层 → 生成建议与优先级 → 逐家收口
-const { all, get, run, now, today, addLog, uuid } = require('./db.js');
+const { all, get, run, now, today, addLog, uuid, ownerName } = require('./db.js');
 
 const STALE_DAYS = 30;
 
@@ -230,7 +230,7 @@ module.exports = {
     const note = String(b.note || '').trim() || '已联系（30 天唤醒任务收口）';
     const id = fb.addFollowup({
       ref_type: 'stale_dismiss', ref_id: cid,
-      content: note, result: b.result || '已闭环', closed: 0, author: b.author || 'Bill',
+      content: note, result: b.result || '已闭环', closed: 0, author: b.author || ownerName(),
     });
     addLog('stale_dismiss', cid, note.slice(0, 60));
     // 收口后清掉话术聊点：这轮唤醒结束，下次进清单（若有）重新生成，避免拿旧话术打旧仗
