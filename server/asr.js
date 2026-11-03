@@ -106,7 +106,8 @@ function doTranscribe(id) {
     // 动态热词：把 terms 表里的行业术语导出给转写脚本（新增术语自动提升识别率）
     const hotwordFile = path.join(TMP, 'hotwords.txt');
     try {
-      const words = all('SELECT "right" AS rt FROM terms WHERE enabled=1 AND "right" IS NOT NULL AND "right" <> ""')
+      // 注意：空串比较必须用单引号，SQLite 不接受双引号空串（会被当成标识符）
+      const words = all('SELECT "right" AS rt FROM terms WHERE enabled=1 AND "right" IS NOT NULL AND "right" <> \'\'')
         .map(r => String(r.rt).trim())
         .filter(w => w && !/\s/.test(w));
       fs.writeFileSync(hotwordFile, words.join(' '), 'utf8');
