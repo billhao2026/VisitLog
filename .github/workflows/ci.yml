@@ -6,10 +6,19 @@ on:
   pull_request:
     branches: [main]
 
+# 新提交取消旧的排队 run —— 公开仓库的 macOS runner 排队很慢，
+# 不取消的话旧 run 会一直占着队列位。
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # ── 主检查：语法 / 冒烟测试 / 敏感扫描 ──────────────────────
+  # 三平台各跑一遍。这是提交前必须过的关卡。
   check:
-    name: 语法与启动检查
+    name: 语法与冒烟测试 (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -41,22 +50,6 @@ jobs:
       - name: 冒烟测试
         shell: bash
         run: npm test
-
-      - name: 页面渲染自检
-        shell: bash
-        run: |
-          # 需要 macOS（WebKit）；Linux runner 上跳过
-          if [ "$(uname)" != "Darwin" ]; then
-            echo "跳过：渲染自检需要 macOS 的 WebKit"
-            exit 0
-          fi
-          # 灌入演示数据，否则页面是空的，自检无从判断渲染是否正常
-          node scripts/demo_data.js -- --reset
-          node server/server.js > server.log 2>&1 &
-          SERVER_PID=$!
-          sleep 6
-          node scripts/check-render.js http://localhost:8897
-          kill $SERVER_PID 2>/dev/null || true
 
       - name: 启动冒烟测试
         shell: bash
@@ -113,4 +106,38 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: server-log-${{ matrix.os }}
+          path: server.log
+
+  # ── 页面渲染自检：仅 macOS ────────────────────────────────────
+  # 需要系统 WebKit，只能在 macOS 上跑。单独拆成一个 job：
+  # macOS runner 排队常常要十几分钟，挂在主检查里会拖慢（甚至拖挂）整条流水线。
+  render:
+    name: 页面渲染自检 (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 25
+    continue-on-error: true   # 排队被取消不影响主检查的结论
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 页面渲染自检
+        shell: bash
+        run: |
+          # 灌入演示数据，否则页面是空的，自检无从判断渲染是否正常
+          node scripts/demo_data.js -- --reset
+          node server/server.js > server.log 2>&1 &
+          SERVER_PID=$!
+          sleep 6
+          node scripts/check-render.js http://localhost:8897
+          kill $SERVER_PID 2>/dev/null || true
+
+      - name: 上传日志
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: render-log-macos
           path: server.log
