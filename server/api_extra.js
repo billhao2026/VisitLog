@@ -90,6 +90,35 @@ module.exports = {
     return { ok: true };
   },
 
+  // ── 版本与迭代时间表：读 package.json + CHANGELOG.json ──────────
+  'GET /api/version': async () => {
+    const fs = require('fs');
+    const path = require('path');
+    const ROOT = require('./db.js').ROOT;
+    let data = { current: '', build: '', generations: [], note: '' };
+    let pkg = {};
+    try { data = Object.assign(data, JSON.parse(fs.readFileSync(path.join(ROOT, 'CHANGELOG.json'), 'utf8'))); } catch (e) { /* 无版本文件 */ }
+    try { pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')); } catch (e) { /* 忽略 */ }
+    return {
+      ok: true,
+      version: pkg.version || data.current || '',
+      build: data.build || '',
+      note: data.note || '',
+      generations: data.generations || [],
+    };
+  },
+
+  // ── 压缩包发布记录：读 RELEASES.json ──────────
+  'GET /api/releases': async () => {
+    const fs = require('fs');
+    const path = require('path');
+    const ROOT = require('./db.js').ROOT;
+    let data = { releases: [], note: '' };
+    try { data = Object.assign(data, JSON.parse(fs.readFileSync(path.join(ROOT, 'RELEASES.json'), 'utf8'))); } catch (e) { /* 无记录文件 */ }
+    const list = (data.releases || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    return { ok: true, list, note: data.note || '', count: list.length };
+  },
+
   // ── 休假日（非工作日）：统计与提醒据此跳过 ──────────
   'GET /api/nonworkdays': async () => {
     const wd = require('./workdays.js');

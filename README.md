@@ -5,6 +5,8 @@
 
 纯本地运行，零云端依赖，零外部 npm 依赖（除可选的 multer 加速上传解析）。数据全部留在你自己的机器上。
 
+<img src="docs/screenshot/home.png" alt="今日概览">
+
 <table>
 <tr>
 <td width="50%"><img src="docs/screenshot/calls.png" alt="通话流水"></td>
@@ -23,12 +25,12 @@
 <td align="center"><b>日程速记</b> — 线下活动补录，按天落成 Markdown</td>
 </tr>
 <tr>
+<td width="50%"><img src="docs/screenshot/highlights.png" alt="重点事项"></td>
 <td width="50%"><img src="docs/screenshot/customers.png" alt="客户档案"></td>
-<td width="50%"><img src="docs/screenshot/dict.png" alt="问题字典"></td>
 </tr>
 <tr>
+<td align="center"><b>重点事项</b> — 强制【客户类型】前缀，一眼分辨客户属性</td>
 <td align="center"><b>客户档案</b> — 联系人、跟进人、沉默天数、拜访次数</td>
-<td align="center"><b>问题字典</b> — 分类体系与术语纠错，改判在此反哺</td>
 </tr>
 </table>
 
@@ -72,6 +74,8 @@ npm run demo
 - **工作日推算**：待办到期日自动避让周末与手动标记的休假日；改休假日会重排所有未完成待办
 - **日程**：独立的日程记录页，与待办、重点事项分工（待办=要做的事，日程=什么时候做）
 - **跟进唤醒台**：按沉默天数分层的待唤醒客户，配可编辑话术
+- **重点事项强制【客户类型】前缀**：每条要点以 `【类型】` 开头 —— 行业维度 8+1（党政 / 国央企 / 能源 / 金融 / 通信 / 交通 / 医疗 / 教育 / 军队）+ 渠道性质 5 类（电商平台 / 总代经销 / 集成商 / 服务商 / 终端用户）。判定铁律：**以终端客户的行业为准**，判不出来不臆造
+- **版本迭代时间表**：设置页内置 6 代版本谱系（`CHANGELOG.json` + `GET /api/version`），打包发布留痕（`RELEASES.json` + `GET /api/releases`）
 - **跨行业可复用**：分类字典与术语表可自行改造，见[跨行业复用](#跨行业复用)
 
 ---

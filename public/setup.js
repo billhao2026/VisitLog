@@ -31,6 +31,8 @@ window.Setup = (function () {
     const s = await get('/api/settings');
     const st = await get('/api/storage');
     const nw = await get('/api/nonworkdays');
+    const ver = await get('/api/version');
+    const rels = await get('/api/releases');
     const set = s.settings;
     if (!s.ok) return;
 
@@ -61,8 +63,7 @@ window.Setup = (function () {
           <button class="btn pri sm" id="owner-save">保存</button>
         </div>
       </div>
-
-      <h3 style="font-size:13px;margin:20px 0 10px">空间占用</h3>
+      <h3 style="font-size:13px;margin:0 0 10px">空间占用</h3>
       <div class="card" style="background:var(--paper2)" id="set-space"></div>
 
       <h3 style="font-size:13px;margin:20px 0 10px">🔐 局域网访问口令（防同事攻击本机）</h3>
@@ -128,9 +129,100 @@ window.Setup = (function () {
       <div class="muted" style="font-size:11px;line-height:1.7">
         服务进程本身仅占约 50MB 内存；转写时临时加载模型，结束后立即释放。<br>
         若长期不用转写，可把模型切到 base，磁盘再省数百 MB。
+      </div>
+
+      <h3 style="font-size:13px;margin:20px 0 10px">📦 版本与迭代时间表</h3>
+      <div class="card" style="background:var(--paper2)">
+        <div class="rowflex" style="align-items:baseline;gap:8px">
+          <b style="font-size:15px">拜访志 VisitLog</b>
+          <span class="tag g">v${esc((ver && ver.version) || '—')}</span>
+          <span class="grow"></span>
+          <button class="btn sm" id="ver-toggle">展开时间表 ▾</button>
+        </div>
+        <div class="muted" style="font-size:11.5px;margin-top:5px">
+          当前第 <b style="color:var(--accent)">${((ver && ver.generations && ver.generations[0]) ? ver.generations[0].gen : '—')}</b> 代
+          · 最近发布 ${esc((ver && ver.build) || '—')}
+          · 累计 ${(ver && ver.generations ? ver.generations.length : 0)} 次迭代
+        </div>
+        <div id="ver-list" style="display:none;margin-top:14px"></div>
+      </div>
+
+      <h3 style="font-size:13px;margin:20px 0 10px">📦 压缩包发布记录</h3>
+      <div class="card" style="background:var(--paper2)">
+        <div class="rowflex" style="align-items:baseline;gap:8px;flex-wrap:wrap">
+          <b style="font-size:13.5px">累计打包 ${(rels && rels.count) || 0} 次</b>
+          <span class="muted" style="font-size:11.5px">${((rels && rels.list && rels.list.length) ? ('最近 ' + esc(rels.list[0].date)) : '暂无记录')}</span>
+          <span class="grow"></span>
+          <button class="btn sm" id="rel-toggle">展开记录 ▾</button>
+        </div>
+        <div class="muted" style="font-size:11px;margin-top:4px">每次生成更新包后记一条：代次 · 包名 · 大小 · 变更内容 · 去向</div>
+        <div id="rel-list" style="display:none;margin-top:12px"></div>
       </div>`);
 
     refresh(st);
+
+    // 版本与迭代时间表
+    const verList = $('#ver-list');
+    let verOpen = false;
+    function renderVer() {
+      if (!verList) return;
+      const gens = (ver && ver.generations) || [];
+      verList.innerHTML = gens.length ? gens.map(g => `
+        <div style="display:flex;gap:10px">
+          <div style="flex:0 0 52px;text-align:right;padding-top:1px">
+            <b style="font-size:12.5px;color:var(--accent)">第 ${g.gen} 代</b>
+            <div class="muted" style="font-size:10px">v${esc(g.version || '')}</div>
+          </div>
+          <div style="flex:0 0 2px;background:var(--rule2);position:relative">
+            <span style="position:absolute;top:5px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--accent)"></span>
+          </div>
+          <div class="grow" style="padding-left:6px;padding-bottom:14px">
+            <div class="rowflex" style="gap:6px;align-items:baseline">
+              <b style="font-size:12.5px">${esc(g.title || '')}</b>
+              <span class="muted" style="font-size:10.5px">${esc(g.date || '')}</span>
+            </div>
+            <div class="muted" style="font-size:11.5px;margin:2px 0 4px">${esc(g.summary || '')}</div>
+            <ul style="margin:0;padding-left:16px;font-size:11.5px;color:var(--ink2);line-height:1.75">
+              ${(g.changes || []).map(c => `<li>${esc(c)}</li>`).join('')}
+            </ul>
+          </div>
+        </div>`).join('') : '<div class="muted" style="font-size:12px">暂无版本记录</div>';
+    }
+    if ($('#ver-toggle')) $('#ver-toggle').onclick = () => {
+      verOpen = !verOpen;
+      if (verOpen) renderVer();
+      if (verList) verList.style.display = verOpen ? 'block' : 'none';
+      $('#ver-toggle').textContent = verOpen ? '收起时间表 ▴' : '展开时间表 ▾';
+    };
+
+    // 压缩包发布记录
+    const relList = $('#rel-list');
+    let relOpen = false;
+    function renderRel() {
+      if (!relList) return;
+      const list = (rels && rels.list) || [];
+      relList.innerHTML = list.length ? list.map((r, i) => `
+        <div style="border-top:${i ? '1px dashed var(--rule)' : 'none'};padding:${i ? '12px 0 0' : '0'} 0 12px">
+          <div class="rowflex" style="gap:7px;align-items:baseline;flex-wrap:wrap">
+            <b style="font-size:12.5px">${esc(r.date || '')} ${esc(r.time || '')}</b>
+            <span class="tag">${esc(r.version || '—')}</span>
+            <span class="muted" style="font-size:11px">${esc(r.size || '')} · ${r.files || '—'} 文件</span>
+            <span class="grow"></span>
+            ${(r.targets || []).map(t => `<span class="tag ${t === 'GitHub' ? 'b' : t === '服务器' ? 'g' : ''}">${esc(t)}</span>`).join(' ')}
+          </div>
+          <div style="font-size:11.5px;color:var(--ink2);margin:5px 0 2px;word-break:break-all">${esc(r.file || '')}</div>
+          <ul style="margin:4px 0 0;padding-left:16px;font-size:11.5px;color:var(--ink2);line-height:1.75">
+            ${(r.changes || []).map(c => `<li>${esc(c)}</li>`).join('')}
+          </ul>
+          ${r.note ? `<div class="muted" style="font-size:11px;margin-top:5px">备注：${esc(r.note)}</div>` : ''}
+        </div>`).join('') : '<div class="muted" style="font-size:12px">暂无发布记录</div>';
+    }
+    if ($('#rel-toggle')) $('#rel-toggle').onclick = () => {
+      relOpen = !relOpen;
+      if (relOpen) renderRel();
+      if (relList) relList.style.display = relOpen ? 'block' : 'none';
+      $('#rel-toggle').textContent = relOpen ? '收起记录 ▴' : '展开记录 ▾';
+    };
 
     // 休假日（非工作日）管理
     const nwBox = $('#nw-list');

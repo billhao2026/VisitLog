@@ -25,6 +25,14 @@ models/
 __pycache__/
 *.pyc
 *.pyo
+# 虚拟环境：内含本机绝对路径（pyvenv.cfg / bin/activate），绝不能提交
+.venv/
+venv/
+env/
+# 虚拟环境：内含本机绝对路径（pyvenv.cfg / bin/activate），绝不能提交
+.venv/
+venv/
+env/
 
 # ── 系统 ──
 .DS_Store
@@ -37,3 +45,6 @@ Thumbs.db
 
 # 本地打包产物
 visitlog-open-source.zip
+
+# ── 私有数据与一次性脚本（绝不提交/打包）──
+.private/

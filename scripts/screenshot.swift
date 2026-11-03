@@ -19,7 +19,7 @@ import WebKit
 
 let args = CommandLine.arguments
 guard args.count >= 3 else {
-    print("用法: swift scripts/screenshot.swift <URL> <输出PNG> [等待秒] [宽] [高]")
+    print("用法: swift scripts/screenshot.swift <URL> <输出PNG> [等待秒] [宽] [高] [点击选择器] [裁剪高度]")
     exit(1)
 }
 let urlStr = args[1]
@@ -27,6 +27,10 @@ let outPath = args[2]
 let waitSec = args.count > 3 ? Double(args[3]) ?? 3.0 : 3.0
 let width = args.count > 4 ? Int(args[4]) ?? 1440 : 1440
 let height = args.count > 5 ? Int(args[5]) ?? 900 : 900
+// 可选第 6 个参数：截图前先点击该 CSS 选择器（用于打开抽屉等交互态）
+let clickSel = args.count > 6 && args[6] != "-" ? args[6] : nil
+// 可选第 7 个参数：只截取顶部 N 像素（用于避开渲染受限的图表区）
+let cropH = args.count > 7 ? Int(args[7]) ?? 0 : 0
 
 guard let url = URL(string: urlStr) else {
     print("无效 URL: \(urlStr)")
@@ -37,6 +41,7 @@ final class Shooter: NSObject, WKNavigationDelegate {
     let webView: WKWebView
     let outPath: String
     let waitSec: Double
+    var clickSelector: String?
     var done = false
 
     init(frame: NSRect, outPath: String, waitSec: Double) {
@@ -45,6 +50,7 @@ final class Shooter: NSObject, WKNavigationDelegate {
         self.webView = WKWebView(frame: frame, configuration: config)
         self.outPath = outPath
         self.waitSec = waitSec
+        self.clickSelector = nil
         super.init()
         self.webView.navigationDelegate = self
     }
@@ -53,7 +59,7 @@ final class Shooter: NSObject, WKNavigationDelegate {
         // 等页面里的数据请求与图表渲染完成
         let deadline = Date().addingTimeInterval(waitSec)
         func tick() {
-            if Date() >= deadline { shoot(); return }
+            if Date() >= deadline { clickThenShoot(); return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { tick() }
         }
         tick()
@@ -69,6 +75,23 @@ final class Shooter: NSObject, WKNavigationDelegate {
                  withError error: Error) {
         FileHandle.standardError.write("加载失败: \(error.localizedDescription)\n".data(using: .utf8)!)
         exit(1)
+    }
+
+    // 点击指定元素（用于打开抽屉等交互态），等待渲染后再截图
+    func clickThenShoot() {
+        guard let sel = clickSelector else { shoot(); return }
+        let js = "(() => { const el = document.querySelector('\(sel)'); if (!el) return 'no-el'; el.click(); return 'clicked:' + (el.onclick ? 'has-handler' : 'NO-HANDLER'); })()"
+        webView.evaluateJavaScript(js) { res, err in
+            let msg = res.map { String(describing: $0) } ?? ("err:" + (err?.localizedDescription ?? "-"))
+            FileHandle.standardError.write("点击 \(sel) → \(msg)\n".data(using: .utf8)!)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+                self.webView.evaluateJavaScript("document.querySelector('#drawer') ? ('drawer-hidden=' + document.querySelector('#drawer').hidden) : 'no-drawer'") { r2, _ in
+                    let m2 = r2.map { String(describing: $0) } ?? "?"
+                    FileHandle.standardError.write("  状态: \(m2)\n".data(using: .utf8)!)
+                    self.shoot()
+                }
+            }
+        }
     }
 
     func shoot() {
@@ -104,7 +127,8 @@ final class Shooter: NSObject, WKNavigationDelegate {
 
     func takeShot() {
         let cfg = WKSnapshotConfiguration()
-        cfg.rect = CGRect(origin: .zero, size: webView.bounds.size)
+        let h = cropH > 0 ? CGFloat(cropH) : webView.bounds.size.height
+        cfg.rect = CGRect(origin: .zero, size: CGSize(width: webView.bounds.size.width, height: h))
         webView.takeSnapshot(with: cfg) { image, error in
             guard let image = image else {
                 FileHandle.standardError.write("截图失败: \(error?.localizedDescription ?? "未知")\n".data(using: .utf8)!)
@@ -162,6 +186,7 @@ app.setActivationPolicy(.regular)
 
 let frame = NSRect(x: 0, y: 0, width: width, height: height)
 let shooter = Shooter(frame: frame, outPath: outPath, waitSec: waitSec)
+shooter.clickSelector = clickSel
 
 // 放进真实窗口：给 WebView 一个可见的渲染上下文
 let window = NSWindow(contentRect: frame,

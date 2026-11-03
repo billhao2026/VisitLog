@@ -1,6 +1,6 @@
 {
   "name": "visitlog",
-  "version": "1.1.3",
+  "version": "6.0.0",
   "description": "拜访志 VisitLog — 客户通话记录平台：上传录音 → 本地转写 → AI 拆解归类 → 待办与重点沉淀，改判结果反哺字典",
   "main": "server/server.js",
   "scripts": {
